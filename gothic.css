@@ -1,0 +1,68 @@
+table {
+    border-collapse: collapse;
+    text-align: center;
+    width: 100%;
+}
+.sheet-left {
+    text-align: left;
+}
+.sheet-right {
+    text-align: right;
+}
+input[disabled], select {
+    width: 100%;
+    text-align:center;
+}
+input[type="text"] {
+    width: 70%;
+}
+input[type="number"] {
+    width: 2.2em;
+}
+td:after > input.sheet-distance {
+    content:'cm';
+}
+td:after > input.sheet-angle {
+    content:'&deg;';
+}
+tr {
+    background-color: white;
+    color: black;
+}
+.sheet-inverted {
+    background-color: black;
+    color: white;
+    text-transform: uppercase;
+}
+td, input {
+    background-color: inherited;
+    color: inherited;
+    padding: 0 0.5em;
+}
+tr.sheet-tab-content {
+    display: none;
+}
+input.sheet-tab1:checked ~ table tr.sheet-tab1, input.sheet-tab2:checked ~ table tr.sheet-tab2, input.sheet-tab3:checked ~ table tr.sheet-tab3, input.sheet-tabd:checked ~ table tr.sheet-tabd, input.sheet-tabp:checked ~ table tr.sheet-tabp {
+    display: table-row;
+}
+input.sheet-tab {
+    width: 8em;
+    height: 1.5em;
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+    z-index: 1;
+}
+input.sheet-tab::before {
+    content: attr(title);
+    text-align: center;
+    display: inline-block;
+    background-color: white;
+    color: black;
+    width: 8em;
+    height: 1.5em;
+}
+input.sheet-tab:checked::before {
+    background-color: black;
+    color: white;
+}
