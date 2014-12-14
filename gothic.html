@@ -1,16 +1,11 @@
-<input type="radio" name="attr_tab" class="sheet-tab sheet-tab0" value="0" title="Zero" /><span></span>
-
-<input type="radio" name="attr_tab" class="sheet-tab sheet-tab1" value="1" title="One" checked="checked" /><span></span>
-
-<input type="radio" name="attr_tab" class="sheet-tab sheet-tab2" value="2" title="Two" /><span></span>
-
-<input type="radio" name="attr_tab" class="sheet-tab sheet-tab3" value="3" title="Three" /><span></span>
-
-<input type="checkbox" name="attr_dorsal" class="sheet-tab sheet-tabd" title="Dorsal" checked="checked" /><span></span>
-
-<input type="checkbox" name="attr_prow" class="sheet-tab sheet-tabp" title="Prow" checked="checked" /><span></span>
-
-<table>
+<input type="radio" name="attr_side" class="sheet-arm sheet-arm0" value="0" title="Zero" />
+<input type="radio" name="attr_side" class="sheet-arm sheet-arm1" value="1" title="One" checked="checked" />
+<input type="radio" name="attr_side" class="sheet-arm sheet-arm2" value="2" title="Two" />
+<input type="radio" name="attr_side" class="sheet-arm sheet-arm3" value="3" title="Three" />
+<input type="checkbox" name="attr_dorsal" class="sheet-arm sheet-armd" title="Dorsal" checked="checked" />
+<input type="checkbox" name="attr_prow" class="sheet-arm sheet-armp" title="Prow" checked="checked" />
+<input type="checkbox" name="attr_bays" class="sheet-arm sheet-armb" title="Prow Bays" />
+<table class="sheet-first-table">
     <tr>
         <th class="sheet-left">Name:
             <input type="text" name="attr_character_name" />
@@ -19,7 +14,7 @@
             <input type="text" name="attr_class" />
         </th>
         <th class="sheet-right">Leadership:
-            <input type="number" name="attr_leadership" value="6" min="6" max="10" />
+            <input type="number" name="attr_leadership" min="6" max="10" />
         </th>
     </tr>
 </table>
@@ -42,16 +37,16 @@
             </select>
         </td>
         <td>
-            <input type="number" name="attr_hits" value="8" min="1" max="20" />
+            <input type="number" name="attr_hits" min="1" max="20" />
+        </td>
+        <td class="sheet-distance">
+            <input type="number" name="attr_speed" min="10" max="35" step="5" />
+        </td>
+        <td class="sheet-angle">
+            <input type="number" name="attr_turn" min="0" max="90" step="45" />
         </td>
         <td>
-            <input class="sheet-distance" type="number" name="attr_speed" value="20" min="10" max="35" step="5" />
-        </td>
-        <td>
-            <input class="sheet-angle" type="number" name="attr_turn" value="45" min="0" max="90" step="45" />
-        </td>
-        <td>
-            <input type="number" name="attr_shields" value="2" min="1" max="6" />
+            <input type="number" name="attr_shields" min="1" max="6" />
         </td>
         <td>
             <select name="attr_armour">
@@ -64,11 +59,11 @@
             </select>
         </td>
         <td>
-            <input type="number" name="attr_turrets" value="2" min="1" max="6" />
+            <input type="number" name="attr_turrets" min="1" max="6" />
         </td>
     </tr>
 </table>
-<table>
+<table class="sheet-last-table">
     <tr class="sheet-inverted">
         <td>Armament</td>
         <td>Range</td>
@@ -76,7 +71,7 @@
         <td>Fire Arc</td>
         <td>Fired</td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab1 sheet-tab2 sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm1 sheet-arm2 sheet-arm3">
         <td>
             <select name="attr_port_1_type">
                 <option value="bays">Port launch bays</option>
@@ -84,11 +79,11 @@
                 <option value="weapons">Port weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_port_1_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_port_1_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_port_1_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_port_1_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_port_1_arc" value="Left" disabled="true" />
@@ -97,7 +92,7 @@
             <input type="checkbox" name="attr_port_1_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab1 sheet-tab2 sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm1 sheet-arm2 sheet-arm3">
         <td>
             <select name="attr_starboard_1_type">
                 <option value="bays">Starboard launch bays</option>
@@ -105,11 +100,11 @@
                 <option value="weapons">Starboard weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_starboard_1_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_starboard_1_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_starboard_1_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_starboard_1_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_starboard_1_arc" value="Right" disabled="true" />
@@ -118,7 +113,7 @@
             <input type="checkbox" name="attr_starboard_1_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab2 sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm2 sheet-arm3">
         <td>
             <select name="attr_port_2_type">
                 <option value="bays">Port launch bays</option>
@@ -126,11 +121,11 @@
                 <option value="weapons">Port weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_port_2_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_port_2_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_port_2_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_port_2_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_port_2_arc" value="Left" disabled="true" />
@@ -139,7 +134,7 @@
             <input type="checkbox" name="attr_port_2_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab2 sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm2 sheet-arm3">
         <td>
             <select name="attr_starboard_2_type">
                 <option value="bays">Starboard launch bays</option>
@@ -147,11 +142,11 @@
                 <option value="weapons">Starboard weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_starboard_2_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_starboard_2_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_starboard_2_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_starboard_2_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_starboard_2_arc" value="Right" disabled="true" />
@@ -160,7 +155,7 @@
             <input type="checkbox" name="attr_starboard_2_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm3">
         <td>
             <select name="attr_port_3_type">
                 <option value="bays">Port launch bays</option>
@@ -168,11 +163,11 @@
                 <option value="weapons">Port weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_port_3_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_port_3_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_port_3_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_port_3_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_port_3_arc" value="Left" disabled="true" />
@@ -181,7 +176,7 @@
             <input type="checkbox" name="attr_port_3_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tab3">
+    <tr class="sheet-arm-content sheet-arm3">
         <td>
             <select name="attr_starboard_3_type">
                 <option value="bays">Starboard launch bays</option>
@@ -189,11 +184,11 @@
                 <option value="weapons">Starboard weapons battery</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_starboard_3_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_starboard_3_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_starboard_3_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_starboard_3_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_starboard_3_arc" value="Right" disabled="true" />
@@ -202,18 +197,19 @@
             <input type="checkbox" name="attr_starboard_3_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tabd">
+    <tr class="sheet-arm-content sheet-armd">
         <td>
             <select name="attr_dorsal_type">
                 <option value="lances">Dorsal lance battery</option>
                 <option value="weapons">Dorsal weapons battery</option>
+                <option value="bombard">Dorsal bombardment cannon</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_dorsal_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_dorsal_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_dorsal_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_dorsal_power" min="1" max="20" />
         </td>
         <td>
             <input name="attr_dorsal_arc" value="Left/Front/Right" disabled="true" />
@@ -222,7 +218,7 @@
             <input type="checkbox" name="attr_dorsal_used" />
         </td>
     </tr>
-    <tr class="sheet-tab-content sheet-tabp">
+    <tr class="sheet-arm-content sheet-armp">
         <td>
             <select name="attr_prow_type">
                 <option value="lances">Prow lance battery</option>
@@ -231,11 +227,11 @@
                 <option value="nova">Prow nova cannon</option>
             </select>
         </td>
-        <td>
-            <input class="sheet-distance" type="number" name="attr_prow_range" value="30" min="15" max="60" step="15" />
+        <td class="sheet-distance">
+            <input type="number" name="attr_prow_range" min="15" max="60" step="15" />
         </td>
         <td>
-            <input type="number" name="attr_prow_power" value="2" min="1" max="20" />
+            <input type="number" name="attr_prow_power" min="1" max="20" />
         </td>
         <td>
             <select name="attr_prow_arc">
@@ -247,4 +243,32 @@
             <input type="checkbox" name="attr_prow_used" />
         </td>
     </tr>
+    <tr class="sheet-arm-content sheet-armb">
+        <td>
+            <select name="attr_prow_bays_type" disabled="disabled">
+                <option value="bays">Prow launch bays</option>
+            </select>
+        </td>
+        <td class="sheet-distance">
+            <input type="number" name="attr_prow_bays_range" min="15" max="60" step="15" />
+        </td>
+        <td>
+            <input type="number" name="attr_prow_bays_power" min="1" max="20" />
+        </td>
+        <td>
+            <select name="attr_prow_bays_arc" disabled="disabled">
+                <option value="around">-</option>
+            </select>
+        </td>
+        <td>
+            <input type="checkbox" name="attr_prow_bays_used" />
+        </td>
+    </tr>
 </table>
+<input type="radio" name="attr_orders" class="sheet-orders" value="None" title="No Orders" checked="checked" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Ahead" title="All Ahead Full" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Turn" title="Come to New Heading" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Stop" title="Burn Retros" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Lock" title="Lock On" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Load" title="Reload Ordnance" />
+<input type="radio" name="attr_orders" class="sheet-orders" value="Brace" title="Brace for Impact" />

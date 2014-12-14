@@ -2,6 +2,13 @@ table {
     border-collapse: collapse;
     text-align: center;
     width: 100%;
+    margin: 0.5em 0em;
+}
+table.sheet-first-table {
+    margin-top: 1.5em
+}
+table.sheet-last-table {
+    margin-bottom: 1.5em
 }
 .sheet-left {
     text-align: left;
@@ -17,13 +24,15 @@ input[type="text"] {
     width: 70%;
 }
 input[type="number"] {
-    width: 2.2em;
+    width: 2.5em;
 }
-td:after > input.sheet-distance {
-    content:'cm';
+td.sheet-distance:after {
+    content:"cm";
 }
-td:after > input.sheet-angle {
-    content:'&deg;';
+td.sheet-angle:after {
+    content:"o";
+    vertical-align: super;
+    font-size: 70%
 }
 tr {
     background-color: white;
@@ -39,13 +48,13 @@ td, input {
     color: inherited;
     padding: 0 0.5em;
 }
-tr.sheet-tab-content {
+tr.sheet-arm-content {
     display: none;
 }
-input.sheet-tab1:checked ~ table tr.sheet-tab1, input.sheet-tab2:checked ~ table tr.sheet-tab2, input.sheet-tab3:checked ~ table tr.sheet-tab3, input.sheet-tabd:checked ~ table tr.sheet-tabd, input.sheet-tabp:checked ~ table tr.sheet-tabp {
+input.sheet-arm1:checked ~ table tr.sheet-arm1, input.sheet-arm2:checked ~ table tr.sheet-arm2, input.sheet-arm3:checked ~ table tr.sheet-arm3, input.sheet-armd:checked ~ table tr.sheet-armd, input.sheet-armp:checked ~ table tr.sheet-armp, input.sheet-armb:checked ~ table tr.sheet-armb {
     display: table-row;
 }
-input.sheet-tab {
+input.sheet-arm, input.sheet-orders {
     width: 8em;
     height: 1.5em;
     position: relative;
@@ -53,16 +62,20 @@ input.sheet-tab {
     cursor: pointer;
     z-index: 1;
 }
-input.sheet-tab::before {
+input.sheet-arm::before, input.sheet-orders::before {
     content: attr(title);
     text-align: center;
+    vertical-align: middle;
     display: inline-block;
     background-color: white;
     color: black;
     width: 8em;
     height: 1.5em;
 }
-input.sheet-tab:checked::before {
+input.sheet-orders::before {
+    height: 2.5em;
+}
+input.sheet-arm:checked::before, input.sheet-orders:checked::before {
     background-color: black;
     color: white;
 }

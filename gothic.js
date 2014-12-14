@@ -8,31 +8,60 @@ var Gothic = Gothic || (function() {
         var command = msg.content.split(" ", 1);
 
         if (command == "!target") {
-            ResolveShooting(msg.content.split(" --"), msg.selected);
+            ResolveShooting(msg.content.split(" --"));
         } else if (command == "!move-phase") {
-            DrawMove(msg.who);
+            MovePhase();
         }
     },
-    ResolveShooting = function(args, list) {
-        if (!args || !args.length == 2 || !list || list.length < 1) return;
-        var Target = getObj('graphic',args[1]);
-        if (!Target) return;
-        _.each(list, function(obj){
-            var Shooter = getObj('graphic',obj.id);
-            if (!Shooter) return;
-            firingSolution = new FiringSolution(Shooter, Target);
-            sendChat("Shooting", Shooter.get("name") + " fires at " + Target.get("name") + ": " + firingSolution.Dice_Expression());
-        });
+    HandleMove = function(obj,prev) {
+        var lock = state.Movement[obj.get("represents")],
+            mark = {};
+    	if (lock) {
+            var point = [obj.get("left"), obj.get("top")],
+                Ship = getShip(obj),
+                minAngle = lock.angle - Number(getAttribute(Ship, "turn")),
+                maxAngle = lock.angle + Number(getAttribute(Ship, "turn"));
+            if (!IsPointInPolygon(point, lock.path)) {
+                var edge = getPointOnEdge(point, lock.path);
+                mark.left = edge[0];
+                mark.top = edge[1];
+                obj.set(mark)
+            };
+            if (obj.get("rotation") > maxAngle) obj.set("rotation", maxAngle);
+            if (obj.get("rotation") < minAngle) obj.set("rotation", minAngle);
+		} else {
+            mark = {left: prev.left, top: prev.top, rotation: prev.rotation}
+    	    obj.set(mark);
+		}
+	},
+    GraphicRemoved = function(obj) {
+        var ship = obj.get("controlledby").split(",")[1];
+        if (ship) {
+            state.Movement[ship] = undefined;
+        }
     },
-    DrawMove = function(player) {
+    ResolveShooting = function(args) {
+        if (!args || !args.length == 3) return;
+        var Shooter = getObj('graphic',args[1]),
+            Target = getObj('graphic',args[2]);
+        if (!Target || !Shooter) return;
+        var firingSolution = new FiringSolution(Shooter, Target);
+        sendChat("Shooting", Shooter.get("name") + " fires at " + Target.get("name") + ": " + firingSolution.Dice_Expression());
+    },
+    MovePhase = function() {
+        state.Movement = {}
         var ships = findObjs({_type:'graphic'});
         _.each(ships, function(obj){
-            if (!obj) return;
-            new MoveMarker(obj).Draw();
+            if (!obj || !obj.get("represents")) return;
+            var marker = new MoveMarker(obj);
+            marker.Draw();
+            state.Movement[obj.get("represents")] = marker.ConvexHull()
         });
     }
     return {
-        HandleChat: HandleChat
+        HandleChat: HandleChat,
+        HandleMove: HandleMove,
+        GraphicRemoved: GraphicRemoved
     };
 }());
 
@@ -41,6 +70,11 @@ on("chat:message", function (msg_orig) {
     if (msg_orig.type != "api") return;
     Gothic.HandleChat(_.clone(msg_orig));
 });
+
+on('change:graphic', Gothic.HandleMove);
+on('destroy:path', Gothic.GraphicRemoved);
+
+state.Movement = {}
 
 function getShip(Token) {
     if (!Token || !Token.get("represents")) return;
@@ -75,6 +109,14 @@ function rotatePoint(pt, center, angleDeg) {
     pt[0] = center[0] + (dx*cosAngle-dy*sinAngle);
     pt[1] = center[1] + (dx*sinAngle+dy*cosAngle);
     return pt;
+};
+
+function IsPointInPolygon(point, poly) {
+    var i, j, c;
+    for (i = 0, j = poly.length - 1, c = false; i < poly.length; j = i++) {
+        if (((poly[i][1] > point[1]) != (poly[j][1] > point[1])) && (point[0] < (poly[j][0] - poly[i][0]) * (point[1] - poly[i][1]) / (poly[j][1] - poly[i][1]) + poly[i][0])) c = !c;
+    }
+    return c;
 };
 
 function FiringSolution(Shooter, Target){
@@ -189,7 +231,7 @@ FiringSolution.prototype.Armour_Facing = function() {
 
 FiringSolution.prototype.WeaponStrength = function (type) {
     var Arc = this.Calculate_Arc(),
-        broad = getAttribute(this.ShooterClass, "tab"),
+        broad = getAttribute(this.ShooterClass, "side"),
         weapons = 0,
         i;
     switch (Arc) {
@@ -214,6 +256,13 @@ FiringSolution.prototype.WeaponStrength = function (type) {
                 break;
             }
     }
+    switch (getAttribute(this.ShooterClass, "orders")){
+        case "Ahead":
+        case "Turn":
+        case "Stop":
+        case "Brace":
+            weapons /= 2;
+    }
     return weapons;
 };
 
@@ -231,21 +280,51 @@ FiringSolution.prototype.Weapon_Available = function(weapon, type){
 }
 
 FiringSolution.prototype.Dice_Expression = function(){
-    return this.Weapon_Expression() + this.Lance_Expression();
+    return this.Weapon_Expression() + this.Lance_Expression() + this.Bombard_Expression();
 };
+
+function RerollOnce(num) {
+    var res = ""
+    for(var i = 0; i<num; i++) {
+        res += "2d6k1,"
+    }
+    return res.substring(0, res.length - 1)
+}
 
 FiringSolution.prototype.Weapon_Expression = function(){
     var Armour = this.Armour_Facing(),
         Column = this.Gunnery_Column(),
         Strength = this.WeaponStrength("weapons");
     if (!Column || !Strength || !Armour) return "";
-    return "\nGunnery: [[" + this.Column_Strength(Column, Strength) + "d6>" + Armour + "]] Hits"
+    if (getAttribute(this.ShooterClass, "orders") == "Lock") {
+//        return "\nGunnery: [[{" + this.Column_Strength(Column, Strength) + "d6ro<" + (Armour - 1) + "}>" + Armour + "]] Hits";
+        return "\nGunnery: [[{" + RerollOnce(this.Column_Strength(Column, Strength)) + "}>" + Armour + "]] Hits";
+    } else {
+        return "\nGunnery: [[" + this.Column_Strength(Column, Strength) + "d6>" + Armour + "]] Hits";
+    }
 };
 
 FiringSolution.prototype.Lance_Expression = function(){
     var Strength = this.WeaponStrength("lances");
     if (!Strength) return "";
-    return "\nLances: [[" + Strength + "d6>4]] Hits"
+    if (getAttribute(this.ShooterClass, "orders") == "Lock") {
+//        return "\nLances: [[{" + Strength + "d6ro<3}>4]] Hits";
+        return "\nLances: [[{" + RerollOnce(Strength) + "}>4]] Hits";
+    } else {
+        return "\nLances: [[" + Strength + "d6>4]] Hits";
+    }
+};
+
+FiringSolution.prototype.Bombard_Expression = function(){
+    var Column = this.Gunnery_Column(),
+        Strength = this.WeaponStrength("bombard");
+    if (!Column || !Strength) return "";
+    if (getAttribute(this.ShooterClass, "orders") == "Lock") {
+//        return "\nBombard: [[{" + this.Column_Strength(Column, Strength) + "d6ro<3}>4]] Hits";
+        return "\nBombard: [[{" + RerollOnce(this.Column_Strength(Column, Strength)) + "}>4]] Hits";
+    } else {
+        return "\nBombard: [[" + this.Column_Strength(Column, Strength) + "d6>4]] Hits";
+    }
 };
 
 FiringSolution.prototype.Column_Strength = function(Column, Strength){
@@ -266,8 +345,8 @@ FiringSolution.prototype.Column_Strength = function(Column, Strength){
 function MoveMarker (Ship){
     this.Ship = Ship;
     this.ShipClass = getShip(Ship);
-    this.Origin = [parseInt(Ship.get("left"), 10), parseInt(Ship.get("top"), 10)];
-    this.Turns = parseInt(getAttribute(this.ShipClass, "turn"), 10) * Math.PI / 180.0;
+    this.Origin = [Number(Ship.get("left")), Number(Ship.get("top"))];
+    this.Turns = Number(getAttribute(this.ShipClass, "turn")) * Math.PI / 180.0;
 };
 
 MoveMarker.prototype.MinForwardMove = function (){
@@ -283,7 +362,7 @@ MoveMarker.prototype.MinForwardMove = function (){
 
 MoveMarker.prototype.ConvexHull = function(){
     var Forward = this.MinForwardMove(),
-        Remaining = parseInt(getAttribute(this.ShipClass, "speed"), 10) - Forward,
+        Remaining = Number(getAttribute(this.ShipClass, "speed")) - Forward,
         Origin = this.Origin, 
         Turns = this.Turns,
         Angle = (180+this.Ship.get("rotation"))%360,
@@ -318,7 +397,14 @@ MoveMarker.prototype.ConvexHull = function(){
     }, min);
 //    Origin[0] += min.minX;
 //    Origin[1] += min.minY;
-    return {path: PathArray, origin: [min.minX, min.minY], width: min.maxX - min.minX, height: min.maxY - min.minY};
+    return {path: PathArray, 
+        origin: [min.minX, min.minY], 
+        width: min.maxX - min.minX, 
+        height: min.maxY - min.minY, 
+        angle: this.Ship.get("rotation"),
+        left: this.Ship.get("left"),
+        top: this.Ship.get("top")
+    };
 }
 
 MoveMarker.prototype.Draw = function(){
@@ -337,9 +423,6 @@ MoveMarker.prototype.Draw = function(){
     });
     pathString += "[\"L\"," + PathArray[23][0] + "," + PathArray[23][1] + "],";
     pathString += "[\"L\"," + PathArray[24][0] + "," + PathArray[24][1] + "]]";
-    log(this.Ship.get("name"))
-    log(PathArray[0]);
-    log(hull.origin);
 
     createObj("path",{ 
             pageid: Campaign().get("playerpageid"), 
@@ -350,7 +433,7 @@ MoveMarker.prototype.Draw = function(){
             height: hull.height,
             path: pathString,
             stroke: "#0f0",
-            controlledby: "all"
+            controlledby: "all," + this.Ship.get("represents")
       });
 };
 
@@ -375,4 +458,45 @@ MoveMarker.prototype.DrawX = function(Point){
             stroke: "#0f0",
             controlledby: "all"
       });
+}
+
+function dot(u, v) {return u[0] * v[0] + u[1] * v[1]}
+function norm(v) {return Math.sqrt(dot(v, v))}
+function dist(u, v) {return norm([u[0]-v[0], u[1]-v[1]])}
+
+function closestPoint(point, segment) {
+    var v = [segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]],
+        w = [point[0] - segment[0][0], point[1] - segment[0][1]],
+        c1 = dot(w,v),
+        c2 = dot(v,v),
+        b = c1 / c2,
+        Pb = [segment[0][0] + b * v[0], segment[0][1] + b * v[1]];
+    
+    // the closest point is outside the segment and nearer to P0
+    if ( c1 <= 0 )   
+        return segment[0];
+
+    // the closest point is outside the segment and nearer to P1
+    if ( c2 <= c1 ) 
+        return segment[1];
+
+    return Pb;
+}
+
+function getPointOnEdge(point, poly) {
+
+    var bestDistance = undefined,
+        bestPoint;
+
+    var i, j;
+    for (i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        var closestInS = closestPoint(point, [poly[j], poly[i]]),
+            d = dist(point, closestInS);
+        if (!bestDistance || d < bestDistance) {
+            bestDistance = d;
+            bestPoint = closestInS; 
+        }
+    };
+
+    return bestPoint;
 }
