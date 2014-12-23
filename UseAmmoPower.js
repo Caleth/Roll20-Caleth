@@ -1,10 +1,11 @@
 // https://gist.github.com/Caleth/77aa90a4d0a328bfca48
 
 var UseAmmoPower = UseAmmoPower || (function() {
-    'use strict';
+	'use strict';
 
-    var version = 0.1,
-        schemaVersion = 0.1,
+	var version = 0.1,
+		schemaVersion = 0.1,
+
 	ch = function (c) {
 		var entities = {
 			'<' : 'lt',
@@ -27,13 +28,13 @@ var UseAmmoPower = UseAmmoPower || (function() {
 		return '';
 	},
 
-    capitalize = function(s) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    },
+	capitalize = function(s) {
+		return s.charAt(0).toUpperCase() + s.slice(1);
+	},
 
-    showHelp = function() {
-        sendChat('',
-            '/w gm '
+	showHelp = function() {
+		sendChat('',
+			'/w gm '
 +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
 	+'<div style="font-weight: bold; border-bottom: 1px solid black;font-size: 130%;">'
 		+'UseAmmoPower v'+version
@@ -76,87 +77,173 @@ var UseAmmoPower = UseAmmoPower || (function() {
 			+'<p>This command requires 2 parameters.  It is usually added by the instrumenting code.  If you copy it from one ability to another, it will be updated with the correct Ability ID on save.  Duplicating an existing character will also cause the new character'+ch("'")+'s abilities to be corrected.  All abilities are validated and updated on restart of the API.</p>'
 		+'</div>'
 	+'</div>'
-    +'<div style="padding-left:10px;">'
-        +'<b><span style="font-family: serif;">!use-ammo &lt;Token/Character ID&gt; &lt;Attribute&gt; &lt;Count&gt;</span></b>'
-        +'<div style="padding-left: 10px;padding-right:20px">'
-            +'<p>'+ch('<')+'Token/Character ID'+ch('>')+' - Internal ID of the user. Either copied from !get-represents or @{Name|character_id}</p>'
-            +'<p>'+ch('<')+'Attribute'+ch('>')+' - Name of the attribute used to track available usages.</p>'
-            +'<p>'+ch('<')+'Count'+ch('>')+' - How many usages removed per use of the power.</p>'
-            +'<p>This command requires 3 parameters.</p>'
-        +'</div>'
-    +'</div>'
+	+'<div style="padding-left:10px;">'
+		+'<b><span style="font-family: serif;">!use-ammo &lt;Token/Character ID&gt; &lt;Attribute&gt; &lt;Count&gt;</span></b>'
+		+'<div style="padding-left: 10px;padding-right:20px">'
+			+'<p>'+ch('<')+'Token/Character ID'+ch('>')+' - Internal ID of the user. Either copied from !get-represents or @{Name|character_id}</p>'
+			+'<p>'+ch('<')+'Attribute'+ch('>')+' - Name of the attribute used to track available usages.</p>'
+			+'<p>'+ch('<')+'Count'+ch('>')+' - How many usages removed per use of the power.</p>'
+			+'<p>This command requires 3 parameters.</p>'
+		+'</div>'
+	+'</div>'
 +'</div>'
-            );
-    },
+			);
+	},
 
-    instrumentPower = function (type, power) {
-        var action=power.object.get('action'),
-            match=action.match(/!use-power\s+\S+\s+\S+/);
+	instrumentPower = function (type, power) {
+		var action=power.object.get('action'),
+			match=action.match(/!use-power\s+\S+\s+\S+/);
 
-        if( match ) {
-            action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+type+' '+power.object.id);
-        } else {
-            action='!use-power '+type+' '+power.object.id+'\n'+action;
-        }
-        power.object.set({action: action});
-    },
-    validateAndRepairAbility = function(obj) {
-        var action=obj.get('action'),
-            match=action.match(/!use-power\s+(\S+)\s+(\S+)/);
-        if(match && match[2] && match[2] !== obj.id) {
-            action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+match[1]+' '+obj.id);
-            obj.set({action: action});
-        }
-    },
-    refreshEncounter = function() {
-        _.chain(state.UseAmmoPower.usedPowers.encounter)
-        .uniq()
-        .map(function(id){
-            return getObj('ability',id);
-        })
-        .reject(_.isUndefined)
-        .each(function(a){
-            a.set({
-                istokenaction: true
-            });
-        });
-        state.UseAmmoPower.usedPowers.encounter=[];
-    },
-    refreshDaily = function() {
-        _.chain(state.UseAmmoPower.usedPowers.daily)
-        .uniq()
-        .map(function(id){
-            return getObj('ability',id);
-        })
-        .reject(_.isUndefined)
-        .each(function(a){
-            a.set({
-                istokenaction: true
-            });
-        });
-        state.UseAmmoPower.usedPowers.daily=[];
-    },
-    refreshAmmo = function() {
-        _.chain(state.UseAmmoPower.usedPowers.ammo)
-        .uniq()
-        .each(function(ammo) {
-            _.chain(ammo.abilities)
-            .map(function(o) {
-                return getObj('ability', o.id);
-            })
-            .reject(_.isUndefined)
-            .each(function(o) {
-                o.set({
-                    istokenaction: true
-                });
-            });
-            var attr = findObjs({_type: 'attribute', _characterid: ammo.character, name: ammo.name});
-            if (attr && attr[0]) {
-                attr[0].set({current: attr[0].get('max')});
-            }
-        });
-    },
-    handleAmmo = function(msg, who, args) {
+		if( match ) {
+			action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+type+' '+power.object.id);
+		} else {
+			action='!use-power '+type+' '+power.object.id+'\n'+action;
+		}
+		power.object.set({action: action});
+	},
+	validateAndRepairAbility = function(obj) {
+		var action=obj.get('action'),
+			match=action.match(/!use-power\s+(\S+)\s+(\S+)/);
+		if(match && match[2] && match[2] !== obj.id) {
+			action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+match[1]+' '+obj.id);
+			obj.set({action: action});
+		}
+	},
+
+	handleInput = function(msg) {
+		var args,
+		who,
+		obj,
+		chars,
+		match,
+		notice,
+		abilities,
+		data,
+		dup,
+		cmds;
+
+		if (msg.type !== "api") {
+			return;
+		}
+
+		var who=getObj('player',msg.playerid).get('_displayname').split(' ')[0];
+		args = msg.content.split(" ");
+		switch(args[0]) {
+
+			case '!short-rest': 
+				if(!isGM(msg.playerid)) {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+							+'Only the GM can initiate a short rest.'
+						+'</div>'
+					);
+				} else {
+					refreshEncounter(); 
+					refreshAmmo();
+				}
+				break;
+
+			case '!long-rest': 
+				if(!isGM(msg.playerid)) {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+							+'Only the GM can initiate a long rest.'
+						+'</div>'
+					);
+				}
+				else
+				{
+					refreshEncounter();
+					refreshDaily();
+					refreshAmmo();
+				}
+				break;
+
+			case '!use-ammo':
+				if( 4 !== args.length ) {
+					showHelp();
+					return;
+				}
+				handleAmmo(msg, who, args);
+				break;
+
+			case '!use-power':
+				if( 3 !== args.length ) {
+					showHelp();
+					return;
+				}
+				handlePower(msg, args, who);
+				break;
+
+			case '!add-use-power':
+				if(!isGM(msg.playerid)) {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+							+'Only the GM can instrument abilites for user-power.'
+						+'</div>'
+					);
+				}
+				else
+				{
+					handleAddPower(msg, args, who);
+				}
+				break;
+		}
+
+	},
+
+	refreshEncounter = function() {
+		_.chain(state.UseAmmoPower.usedPowers.encounter)
+		.uniq()
+		.map(function(id){
+			return getObj('ability',id);
+		})
+		.reject(_.isUndefined)
+		.each(function(a){
+			a.set({
+				istokenaction: true
+			});
+		});
+		state.UseAmmoPower.usedPowers.encounter=[];
+	},
+	refreshDaily = function() {
+		_.chain(state.UseAmmoPower.usedPowers.daily)
+		.uniq()
+		.map(function(id){
+			return getObj('ability',id);
+		})
+		.reject(_.isUndefined)
+		.each(function(a){
+			a.set({
+				istokenaction: true
+			});
+		});
+		state.UseAmmoPower.usedPowers.daily=[];
+	},
+	refreshAmmo = function() {
+		_.chain(state.UseAmmoPower.usedPowers.ammo)
+		.uniq()
+		.each(function(ammo) {
+			_.chain(ammo.abilities)
+			.map(function(o) {
+				return getObj('ability', o.id);
+			})
+			.reject(_.isUndefined)
+			.each(function(o) {
+				o.set({
+					istokenaction: true
+				});
+			});
+			var attr = findObjs({_type: 'attribute', _characterid: ammo.character, name: ammo.name});
+			if (attr && attr[0]) {
+				attr[0].set({current: attr[0].get('max')});
+			}
+		});
+	},
+	handleAmmo = function(msg, who, args) {
 		var chr = getObj('character', args[1]), token;
 		if( ! chr ) {
 			token = getObj('graphic', args[1]);
@@ -166,10 +253,10 @@ var UseAmmoPower = UseAmmoPower || (function() {
 		}
 		if ( chr ) {
 			var attr = findObjs({_type: 'attribute', _characterid: chr.id, name: args[2]})[0],
-                amount=parseInt(args[3],10),
-                val = parseInt(attr.get('current'),10)||0,
-                max = parseInt(attr.get('max'),10)||10000,
-                adj = (val-amount),
+				amount=parseInt(args[3],10),
+				val = parseInt(attr.get('current'),10)||0,
+				max = parseInt(attr.get('max'),10)||10000,
+				adj = (val-amount),
 				valid = true,
 				abilities;
 				
@@ -177,7 +264,7 @@ var UseAmmoPower = UseAmmoPower || (function() {
 			.uniq()
 			.filter(function(o){
 				var action=o.get('action'),
-				    match=action.match(/!use-ammo\s+\S+\s+(\S+)\s+\S+/);
+					match=action.match(/!use-ammo\s+\S+\s+(\S+)\s+\S+/);
 				return match && match[1] && (match[1].toLowerCase() == args[2].toLowerCase());
 			})
 			.value();
@@ -203,10 +290,10 @@ var UseAmmoPower = UseAmmoPower || (function() {
 			if( isGM(msg.playerid) || valid ) {
 				attr.set({current: adj});
 				
-                _.chain(abilities)
-                .filter(function(o){
+				_.chain(abilities)
+				.filter(function(o){
 					var action=o.get('action'),
-					    match=action.match(/!use-ammo\s+\S+\s+(\S+)\s+(\S+)/);
+						match=action.match(/!use-ammo\s+\S+\s+(\S+)\s+(\S+)/);
 					return match && match[2] && (parseInt(match[2], 10) > adj);
 				})
 				.each(function(o) {
@@ -236,288 +323,215 @@ var UseAmmoPower = UseAmmoPower || (function() {
 				);
 		}
 	},
-    handlePower = function(msg, args, who) {
-            if(_.contains(['encounter','daily'],args[1])) {
-                var obj = getObj('ability',args[2]);
-                if(obj) {
-                    obj.set({
-                        istokenaction: false
-                    });
-                    if(_.contains(state.UseAmmoPower.usedPowers[args[1]],args[2])) {
-                        var notice ='<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                                    +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                                    +capitalize(args[1])+' Power '+'['+obj.get('name')+'] has already been used.'
-                                +'</div>';
-                        if(!isGM(msg.playerid)) {
-                            sendChat('','/w gm '+notice);
-                        }
-                        sendChat('','/w '+ who+' '+notice);
-                        
-                    } else {
-                        state.UseAmmoPower.usedPowers[args[1]].push(args[2]);
-                    }
-                    return;
-                }
+	handlePower = function(msg, args, who) {
+			if(_.contains(['encounter','daily'],args[1])) {
+				var obj = getObj('ability',args[2]);
+				if(obj) {
+					obj.set({
+						istokenaction: false
+					});
+					if(_.contains(state.UseAmmoPower.usedPowers[args[1]],args[2])) {
+						var notice ='<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+									+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+									+capitalize(args[1])+' Power '+'['+obj.get('name')+'] has already been used.'
+								+'</div>';
+						if(!isGM(msg.playerid)) {
+							sendChat('','/w gm '+notice);
+						}
+						sendChat('','/w '+ who+' '+notice);
+						
+					} else {
+						state.UseAmmoPower.usedPowers[args[1]].push(args[2]);
+					}
+					return;
+				}
 
-            } else {
-                sendChat('','/w '+ who+' '
-                    +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                        +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                        +'Only durations of "encounter" and "daily" are supported.  Do not know what to do with ['+args[1]+'].'
-                    +'</div>'
-                );
-                return;
-            }
-    },
-    handleAddPower = function(msg, args, who) {
-        var chars,
-        match,
-        abilities,
-        data,
-        dup,
-        cmds;
+			} else {
+				sendChat('','/w '+ who+' '
+					+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+						+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+						+'Only durations of "encounter" and "daily" are supported.  Do not know what to do with ['+args[1]+'].'
+					+'</div>'
+				);
+				return;
+			}
+	},
+	handleAddPower = function(msg, args, who) {
+		var chars,
+		match,
+		abilities,
+		data,
+		dup,
+		cmds;
 
-        args = _.rest(msg.content.split(" --"));
-        if(args.length) {
-            chars=findObjs({type: 'character',archived: false});
-            match=_.chain([args[0]])
-            .map(function(n){
-                var l=_.filter(chars,function(c){
-                    return c.get('name').toLowerCase() === n.toLowerCase();
-                });
-                return ( 1 === l.length ? l : _.filter(chars,function(c){
-                    return -1 !== c.get('name').toLowerCase().indexOf(n.toLowerCase());
-                }));
-            })
-            .flatten()
-            .value();
+		args = _.rest(msg.content.split(" --"));
+		if(args.length) {
+			chars=findObjs({type: 'character',archived: false});
+			match=_.chain([args[0]])
+			.map(function(n){
+				var l=_.filter(chars,function(c){
+					return c.get('name').toLowerCase() === n.toLowerCase();
+				});
+				return ( 1 === l.length ? l : _.filter(chars,function(c){
+					return -1 !== c.get('name').toLowerCase().indexOf(n.toLowerCase());
+				}));
+			})
+			.flatten()
+			.value();
 
-            if(1 !== match.length) {
-                if(match.length) {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                            +'Character [<b>'+args[0]+'</b>] is ambiguous and matches '+match.length+' names: <b><i> '
-                            +_.map(match,function(e){
-                                    return e.get('name');
-                                }).join(', ')
-                            +'</i></b>'
-                        +'</div>'
-                    );
-                } else {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                            +'Character [<b>'+args[0]+'</b>] does not match any names.'
-                        +'</div>'
-                    );
-                }
-            }
-            else
-            {
-                match=match[0];
-                abilities=findObjs({type: 'ability', characterid: match.id});
-                data=_.chain(abilities)
-                    .sort(function(o) {
-                        return o.get('name').toLowerCase();
-                    })
-                    .map(function(o,idx) {
-                        var action=o.get('action'),
-                            match=action.match(/!use-(?:power|ammo)(?:\s+(\S+)){2,3}/);
+			if(1 !== match.length) {
+				if(match.length) {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+							+'Character [<b>'+args[0]+'</b>] is ambiguous and matches '+match.length+' names: <b><i> '
+							+_.map(match,function(e){
+									return e.get('name');
+								}).join(', ')
+							+'</i></b>'
+						+'</div>'
+					);
+				} else {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+							+'Character [<b>'+args[0]+'</b>] does not match any names.'
+						+'</div>'
+					);
+				}
+			}
+			else
+			{
+				match=match[0];
+				abilities=findObjs({type: 'ability', characterid: match.id});
+				data=_.chain(abilities)
+					.sort(function(o) {
+						return o.get('name').toLowerCase();
+					})
+					.map(function(o,idx) {
+						var action=o.get('action'),
+							match=action.match(/!use-(?:power|ammo)(?:\s+(\S+)){2,3}/);
 
-                        return {
-                            name: o.get('name'),
-                            current:  (match && match[1]),
-                            index: ++idx,
-                            object: o
-                        };
-                    },0)
-                    .value();
+						return {
+							name: o.get('name'),
+							current:  (match && match[1]),
+							index: ++idx,
+							object: o
+						};
+					},0)
+					.value();
 
-                if(1 === args.length) {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<div style="border-bottom: 1px solid black;font-weight:bold;size:110%;">Available Powers:</div>'
-                            +'<div><ol>'
-                                +_.reduce(data,function(context, o) {
-                                    return context+'<li>'+o.name+(o.current ? ' <b>['+o.current+']</b>' : '')+'</li>';
-                                },'')
-                            +'</ol></div>'
-                        +'</div>'
-                    );
-                }
-                else
-                {
-                    cmds=_.chain(args)
-                        .rest()
-                        .map(function(c){
-                            var work = c.split(/\s+/),
-                                cmd = work[0].toLowerCase(),
-                                powers = _.chain(work)
-                                            .rest()
-                                            .map(function(p) {
-                                                return (parseInt(p,10) - 1);
-                                            })
-                                            .filter(function(v) {
-                                                return !!v && (v)<data.length;
-                                            })
-                                            .value();
-                                return {
-                                    type: cmd,
-                                    which: powers
-                                };
-                        })
-                        .filter(function(o) {
-                            var types=['encounter','daily'];
-                            if(_.contains(types,o.type)) {
-                                return true;
-                            } 
-                            sendChat('','/w '+ who+' '
-                                +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                                    +'<span style="font-weight:bold;color:#990000;">Warning:</span> '
-                                    +'Ignoring instrumenting type [<b>'+o.type+'</b>].  Only supported types: <b>'+types.join(', ')+'</b>'
-                                +'</div>'
-                            );
-                            return false;
-                        })
-                        .reduce(function(context,o) {
-                            context[o.type]=_.uniq(_.union(context[o.type],o.which));
-                            return context;
-                        },{encounter:[], daily:[]})
-                        .value();
+				if(1 === args.length) {
+					sendChat('','/w '+ who+' '
+						+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+							+'<div style="border-bottom: 1px solid black;font-weight:bold;size:110%;">Available Powers:</div>'
+							+'<div><ol>'
+								+_.reduce(data,function(context, o) {
+									return context+'<li>'+o.name+(o.current ? ' <b>['+o.current+']</b>' : '')+'</li>';
+								},'')
+							+'</ol></div>'
+						+'</div>'
+					);
+				}
+				else
+				{
+					cmds=_.chain(args)
+						.rest()
+						.map(function(c){
+							var work = c.split(/\s+/),
+								cmd = work[0].toLowerCase(),
+								powers = _.chain(work)
+											.rest()
+											.map(function(p) {
+												return (parseInt(p,10) - 1);
+											})
+											.filter(function(v) {
+												return !!v && (v)<data.length;
+											})
+											.value();
+								return {
+									type: cmd,
+									which: powers
+								};
+						})
+						.filter(function(o) {
+							var types=['encounter','daily'];
+							if(_.contains(types,o.type)) {
+								return true;
+							} 
+							sendChat('','/w '+ who+' '
+								+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+									+'<span style="font-weight:bold;color:#990000;">Warning:</span> '
+									+'Ignoring instrumenting type [<b>'+o.type+'</b>].  Only supported types: <b>'+types.join(', ')+'</b>'
+								+'</div>'
+							);
+							return false;
+						})
+						.reduce(function(context,o) {
+							context[o.type]=_.uniq(_.union(context[o.type],o.which));
+							return context;
+						},{encounter:[], daily:[]})
+						.value();
 
-                    dup=_.intersection(cmds.encounter, cmds.daily);
-                    if(dup.length) {
-                        sendChat('','/w '+ who+' '
-                            +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                                +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                                +'Powers cannot be both encounter and daily.  Please specify each power only for one type.  Duplicates: <b>'+dup.join(', ')+'</b>'
-                            +'</div>'
-                        );
-                    } else {
-                        _.each(cmds.encounter, function(e) {
-                            instrumentPower('encounter',data[e]);
-                        });
-                        _.each(cmds.daily, function(e) {
-                            instrumentPower('daily',data[e]);
-                        });
-                    }
-                }
-            }
-        } else {
-            showHelp();
-        }
-    },
-    handleInput = function(msg) {
-        if (msg.type !== "api") {
-            return;
-        }
+					dup=_.intersection(cmds.encounter, cmds.daily);
+					if(dup.length) {
+						sendChat('','/w '+ who+' '
+							+'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+								+'<span style="font-weight:bold;color:#990000;">Error:</span> '
+								+'Powers cannot be both encounter and daily.  Please specify each power only for one type.  Duplicates: <b>'+dup.join(', ')+'</b>'
+							+'</div>'
+						);
+					} else {
+						_.each(cmds.encounter, function(e) {
+							instrumentPower('encounter',data[e]);
+						});
+						_.each(cmds.daily, function(e) {
+							instrumentPower('daily',data[e]);
+						});
+					}
+				}
+			}
+		} else {
+			showHelp();
+		}
+	},
 
-        var who=getObj('player',msg.playerid).get('_displayname').split(' ')[0],
-            args = msg.content.split(" ");
-        switch(args[0]) {
+	checkInstall = function() {    
+		if( ! _.has(state,'UsePower') || state.UsePower.version !== schemaVersion)
+		{
+			state.UseAmmoPower = {
+				version: schemaVersion,
+				usedPowers: {
+					encounter: [],
+					daily: []
+				}
+			};
+		}
+		_.each(findObjs({type:'ability'}), validateAndRepairAbility);
+	},
 
-            case '!short-rest': 
-                if(!isGM(msg.playerid)) {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                            +'Only the GM can initiate a short rest.'
-                        +'</div>'
-                    );
-                } else { 
-                    refreshEncounter(); 
-                    refreshAmmo();
-                }
-                break;
+	registerEventHandlers = function() {
+		on('chat:message', handleInput);
+		on('add:ability', validateAndRepairAbility);
+		on('change:ability:action', validateAndRepairAbility);
+	};
 
-            case '!long-rest': 
-                if(!isGM(msg.playerid)) {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                            +'Only the GM can initiate a long rest.'
-                        +'</div>'
-                    );
-                }
-                else
-                {
-                    refreshEncounter();
-                    refreshDaily();
-                    refreshAmmo();
-                }
-                break;
-
-            case '!use-ammo':
-                if( 4 !== args.length ) {
-                    showHelp();
-                    return;
-                }
-                handleAmmo(msg, who, args);
-
-                break;
-            case '!use-power':
-                if( 3 !== args.length ) {
-                    showHelp();
-                    return;
-                }
-                handlePower(msg, args, who);
-                break;
-
-            case '!add-use-power':
-                if(!isGM(msg.playerid)) {
-                    sendChat('','/w '+ who+' '
-                        +'<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
-                            +'<span style="font-weight:bold;color:#990000;">Error:</span> '
-                            +'Only the GM can instrument abilites for user-power.'
-                        +'</div>'
-                    );
-                }
-                else
-                {
-                    handleAddPower(msg, args, who);
-                }
-                break;
-        }
-
-    },
-    checkInstall = function() {    
-        if( ! _.has(state,'UseAmmoPower') || state.UseAmmoPower.version !== schemaVersion)
-        {
-            state.UseAmmoPower = {
-                version: schemaVersion,
-                usedPowers: {
-                    encounter: [],
-                    daily: [],
-                    ammo: []
-                }
-            };
-        }
-        _.each(findObjs({type:'ability'}), validateAndRepairAbility);
-    },
-
-    registerEventHandlers = function() {
-        on('chat:message', handleInput);
-        on('add:ability', validateAndRepairAbility);
-        on('change:ability:action', validateAndRepairAbility);
-    };
-
-    return {
-        RegisterEventHandlers: registerEventHandlers,
-        CheckInstall: checkInstall
-    };
+	return {
+		RegisterEventHandlers: registerEventHandlers,
+		CheckInstall: checkInstall
+	};
 }());
 
 on("ready",function(){
-    'use strict';
+	'use strict';
 
-    if("undefined" !== typeof isGM && _.isFunction(isGM)) {
-        UseAmmoPower.CheckInstall();
-        UseAmmoPower.RegisterEventHandlers();
-    } else {
-        log('--------------------------------------------------------------');
-        log('UseAmmoPower requires the isGM module to work.');
-        log('isGM GIST: https://gist.github.com/shdwjk/8d5bb062abab18463625');
-        log('--------------------------------------------------------------');
-    }
+	if("undefined" !== typeof isGM && _.isFunction(isGM)) {
+		UseAmmoPower.CheckInstall();
+		UseAmmoPower.RegisterEventHandlers();
+	} else {
+		log('--------------------------------------------------------------');
+		log('UseAmmoPower requires the isGM module to work.');
+		log('isGM GIST: https://gist.github.com/shdwjk/8d5bb062abab18463625');
+		log('--------------------------------------------------------------');
+	}
 });
