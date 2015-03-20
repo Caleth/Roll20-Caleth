@@ -22663,3 +22663,35 @@
         </div>
     </div>
 </div>
+<rolltemplate class="sheet-rolltemplate-at-will">
+    <div class="sheet-rolltemplate-title-at-will sheet-rolltemplate-showtip sheet-rolltemplate-tipsy-n" title="<span>{{title}}</span>">{{name}}<br/>
+        <span class="sheet-rolltemplate-subtitle">{{subtitle}}</span><br/>
+    </div>
+    {{#allprops() name subtitle title}}
+    <div class="sheet-rolltemplate-lines"><b>{{key}}:</b> {{value}}</div>
+    {{/allprops() name subtitle title}}
+</rolltemplate>
+<rolltemplate class="sheet-rolltemplate-encounter">
+    <div class="sheet-rolltemplate-title-encounter showtip tipsy-n" title="{{title}}">{{name}}<br/>
+        <span class="sheet-rolltemplate-subtitle">{{subtitle}}</span><br/>
+    </div>
+    {{#allprops() name subtitle title}}
+    <div class="sheet-rolltemplate-lines"><b>{{key}}:</b> {{value}}</div>
+    {{/allprops() name subtitle title}}
+</rolltemplate>
+<rolltemplate class="sheet-rolltemplate-daily">
+    <div class="sheet-rolltemplate-title-daily showtip tipsy-n" title="{{title}}">{{name}}<br/>
+        <span class="sheet-rolltemplate-subtitle">{{subtitle}}</span><br/>
+    </div>
+    {{#allprops() name subtitle title}}
+    <div class="sheet-rolltemplate-lines"><b>{{key}}:</b> {{value}}</div>
+    {{/allprops() name subtitle title}}
+</rolltemplate>
+<rolltemplate class="sheet-rolltemplate-item">
+    <div class="sheet-rolltemplate-title-item showtip tipsy-n" title="{{title}}">{{name}}<br/>
+        <span class="sheet-rolltemplate-subtitle">{{subtitle}}</span><br/>
+    </div>
+    {{#allprops() name subtitle title}}
+    <div class="sheet-rolltemplate-lines"><b>{{key}}:</b> {{value}}</div>
+    {{/allprops() name subtitle title}}
+</rolltemplate>

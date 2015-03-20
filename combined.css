@@ -1,6 +1,82 @@
-/* CSS Reset */
- {
+/* Roll Templates */
+.sheet-rolltemplate-lines {
+    color: #000;
+    font-size: 14px;
+    font-family: arial;
+    padding: 5px;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    border-radius: 0px;
 }
+.sheet-rolltemplate-lines:nth-child(even) {
+    background-color: #b6ab91;
+}
+.sheet-rolltemplate-lines:nth-child(odd) {
+    background-color: #cec7b6;
+}
+.sheet-rolltemplate-lines:last-child {
+    border-bottom: 1px solid #000;
+    border-radius: 0px 0px 5px 5px
+}
+.sheet-rolltemplate-indent {
+    padding-left: 1.5em;
+}
+.sheet-rolltemplate-inlinerollresult {
+    text-align: center;
+    font-weight: bold;
+    vertical-align:;
+    display: inline-block;
+    min-width: 1.75em;
+    border-radius: 5px;
+    padding: 0px 2px;
+    border: 2px solid;
+    background-color: #fffea2;
+    border-color: #87850a;
+    color: #000000;
+}
+.sheet-rolltemplate-fullfail {
+    background-color: #ffaaaa;
+    border-color: #660000;
+    color: #660000;
+}
+.sheet-rolltemplate-fullcrit {
+    background-color: #88cc88;
+    border-color: #004400;
+    color: #004400
+}
+.sheet-rolltemplate-title-at-will, .sheet-rolltemplate-title-encounter, .sheet-rolltemplate-title-daily, .sheet-rolltemplate-title-item {
+    font-family: georgia;
+    font-size: 17px;
+    font-weight: normal;
+    text-align: center;
+    vertical-align: middle;
+    padding: 2px 0px;
+    border: 1px solid #000;
+    border-radius: 5px 5px 0px 0px;
+    color: #fff;
+}
+.sheet-rolltemplate-title-at-will
+{
+    background-color: #040
+}
+.sheet-rolltemplate-title-encounter
+{
+    background-color: #400
+}
+.sheet-rolltemplate-title-daily
+{
+    background-color: #444
+}
+.sheet-rolltemplate-title-item
+{
+    background-color: #f90
+}
+.sheet-rolltemplate-subtitle {
+    font-family: tahoma;
+    font-size: 11px;
+    font-weight: normal;
+}
+
 .charsheet .sheet-wrapper div, .charsheet .sheet-wrapper span, .charsheet .sheet-wrapper label, .charsheet .sheet-wrapper h1, .charsheet .sheet-wrapper h2, .charsheet .sheet-wrapper h3, .charsheet .sheet-wrapper h4, .charsheet .sheet-wrapper h5, .charsheet .sheet-wrapper h6, .charsheet .sheet-wrapper p, .charsheet .sheet-wrapper table, .charsheet .sheet-wrapper caption, .charsheet .sheet-wrapper tbody, .charsheet .sheet-wrapper tfoot, .charsheet .sheet-wrapper thead, .charsheet .sheet-wrapper tr, .charsheet .sheet-wrapper th, .charsheet .sheet-wrapper td {
     margin: 0;
     padding: 0;

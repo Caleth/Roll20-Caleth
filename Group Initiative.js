@@ -330,7 +330,7 @@ var GroupInitiative = GroupInitiative || (function() {
             error=false,
 			initFunc;
 
-		if (msg.type !== "api" || !isGM(msg.playerid) ) {
+		if (msg.type !== "api" || !playerIsGM(msg.playerid) ) {
 			return;
 		}
 
@@ -558,13 +558,6 @@ var GroupInitiative = GroupInitiative || (function() {
 on("ready",function(){
 	'use strict';
 
-	if("undefined" !== typeof isGM && _.isFunction(isGM)) {
-		GroupInitiative.CheckInstall();
-		GroupInitiative.RegisterEventHandlers();
-	} else {
-		log('--------------------------------------------------------------');
-		log('GroupInitiative requires the isGM module to work.');
-		log('isGM GIST: https://gist.github.com/shdwjk/8d5bb062abab18463625');
-		log('--------------------------------------------------------------');
-	}
+    GroupInitiative.CheckInstall();
+    GroupInitiative.RegisterEventHandlers();
 });

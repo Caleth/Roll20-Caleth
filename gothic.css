@@ -11,20 +11,28 @@ table.sheet-last-table {
     margin-bottom: 1.5em
 }
 .sheet-left {
-    text-align: left;
+    text-align: left !important;
 }
 .sheet-right {
-    text-align: right;
+    text-align: right !important;
 }
-input[disabled], select {
-    width: 100%;
-    text-align:center;
+input, select {
+    margin: 4px 0;
 }
-input[type="text"] {
+input[disabled] {
+    background-color: rgb(255, 255, 255);
+}
+input[disabled][type="number"] {
+    -webkit-appearance: textfield;
+}
+input[disabled][type="text"] {
+    -webkit-appearance: menulist;
+}
+input[type="text"], select {
     width: 70%;
 }
 input[type="number"] {
-    width: 2.5em;
+    width: 4.5em !important;
 }
 td.sheet-distance:after {
     content:"cm";
@@ -43,18 +51,44 @@ tr {
     color: white;
     text-transform: uppercase;
 }
-td, input {
-    background-color: inherited;
-    color: inherited;
+td {
     padding: 0 0.5em;
+    text-align: center;
 }
-tr.sheet-arm-content {
+tr.sheet-arm-content, 
+input.sheet-armb, 
+option[value="bombardment cannon"], 
+option[value="nova cannon"], 
+select[name="attr_armour"] option {
     display: none;
 }
-input.sheet-arm1:checked ~ table tr.sheet-arm1, input.sheet-arm2:checked ~ table tr.sheet-arm2, input.sheet-arm3:checked ~ table tr.sheet-arm3, input.sheet-armd:checked ~ table tr.sheet-armd, input.sheet-armp:checked ~ table tr.sheet-armp, input.sheet-armb:checked ~ table tr.sheet-armb {
+.sheet-arm1:checked ~ table tr.sheet-arm1, 
+.sheet-arm2:checked ~ table tr.sheet-arm2, 
+.sheet-arm3:checked ~ table tr.sheet-arm3, 
+.sheet-armd:checked ~ table tr.sheet-armd, 
+.sheet-armp:checked ~ table tr.sheet-armp, 
+.sheet-armb:checked ~ table tr.sheet-armb {
     display: table-row;
 }
-input.sheet-arm, input.sheet-orders {
+.sheet-marine:checked ~ input.sheet-armb, 
+.sheet-marine:checked ~ table tr td select option[value="bombardment cannon"], 
+.sheet-marine:checked ~ table tr td select option[value="6+"], 
+.sheet-marine:checked ~ table tr td select option[value="5+"], 
+.sheet-imperial:checked ~ table tr td select option[value="nova cannon"],
+.sheet-imperial:checked ~ table tr td select option[value="6+ front/5+"], 
+.sheet-imperial:checked ~ table tr td select option[value="5+"], 
+.sheet-imperial:checked ~ table tr td select option[value="4+"], 
+.sheet-chaos:checked ~ table tr td select option[value="5+"], 
+.sheet-chaos:checked ~ table tr td select option[value="4+"],
+.sheet-eldar:checked ~ table tr td select option[value="4+"],
+.sheet-orks:checked ~ table tr td select option[value="6+/5+/4+"],
+.sheet-orks:checked ~ table tr td select option[value="6+ front/4+"] {
+    display: inline-block;
+}
+.sheet-escort:checked ~ table tr td::before {
+    color: transparent;
+}
+input.sheet-radio {
     width: 8em;
     height: 1.5em;
     position: relative;
@@ -62,7 +96,10 @@ input.sheet-arm, input.sheet-orders {
     cursor: pointer;
     z-index: 1;
 }
-input.sheet-arm::before, input.sheet-orders::before {
+th[title]::before, td[title]::before {
+    content: attr(title);
+}
+input.sheet-radio::before {
     content: attr(title);
     text-align: center;
     vertical-align: middle;
@@ -72,10 +109,10 @@ input.sheet-arm::before, input.sheet-orders::before {
     width: 8em;
     height: 1.5em;
 }
-input.sheet-orders::before {
+input[name="attr_orders"], input[name="attr_orders"]::before {
     height: 2.5em;
 }
-input.sheet-arm:checked::before, input.sheet-orders:checked::before {
+input.sheet-radio:checked::before {
     background-color: black;
     color: white;
 }

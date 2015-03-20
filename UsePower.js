@@ -83,7 +83,7 @@ var UsePower = UsePower || (function() {
 
 	instrumentPower = function (type, power) {
 		var action=power.object.get('action'),
-		    match=action.match(/!use-power\s+\S+\s+\S+/);
+			match=action.match(/!use-power\s+\S+\s+\S+/);
 
 		if( match ) {
 			action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+type+' '+power.object.id);
@@ -94,7 +94,7 @@ var UsePower = UsePower || (function() {
 	},
 	validateAndRepairAbility = function(obj) {
 		var action=obj.get('action'),
-		    match=action.match(/!use-power\s+(\S+)\s+(\S+)/);
+			match=action.match(/!use-power\s+(\S+)\s+(\S+)/);
 		if(match && match[2] && match[2] !== obj.id) {
 			action = action.replace(/!use-power\s+\S+\s+\S+/,'!use-power '+match[1]+' '+obj.id);
 			obj.set({action: action});
@@ -354,8 +354,8 @@ var UsePower = UsePower || (function() {
 				}
 				break;
 		}
-
 	},
+
 	checkInstall = function() {    
 		if( ! _.has(state,'UsePower') || state.UsePower.version !== schemaVersion)
 		{

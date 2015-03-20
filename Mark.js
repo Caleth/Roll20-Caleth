@@ -119,13 +119,13 @@ var Mark = Mark || (function() {
         args = msg.content.split(/ +/);
         switch(args[0]) {
             case '!mark-clear':
-                if(isGM(msg.playerid)) {
+                if(playerIsGM(msg.playerid)) {
                     reset();
                 }
                 break;
 
             case '!aegis-clear':
-                if(isGM(msg.playerid)) {
+                if(playerIsGM(msg.playerid)) {
                     resetAegis();
                 }
                 break;
@@ -137,6 +137,10 @@ var Mark = Mark || (function() {
             case '!aegis':
                 resetAegis();
                 addMark(args, who, msg, aegisURL);
+                break;
+
+            case '!multi-mark':
+                multiMarkButton(args[1], who)
                 break;
         }
 
@@ -243,6 +247,16 @@ var Mark = Mark || (function() {
             });
     },
 
+    multiMarkButton = function(num, who) {
+        var button = '/w ' + who + ' [Select Targets](!mark';
+        for(var i=1;i<=num;++i) {
+            button += ' ?{target|Target ' + i + '|token_id}'
+        }
+        button += ')';
+        log(button);
+        sendChat('', button);
+    },
+
     CheckInstall = function() {    
         if( ! _.has(state,'Mark') || state.Mark.version !== schemaVersion)
         {
@@ -293,13 +307,6 @@ var Mark = Mark || (function() {
 on("ready",function(){
     'use strict';
 
-    if("undefined" !== typeof isGM && _.isFunction(isGM)) {
-        Mark.CheckInstall();
-        Mark.RegisterEventHandlers();
-    } else {
-        log('--------------------------------------------------------------');
-        log('Mark requires the isGM module to work.');
-        log('isGM GIST: https://gist.github.com/shdwjk/8d5bb062abab18463625');
-        log('--------------------------------------------------------------');
-    }
+    Mark.CheckInstall();
+    Mark.RegisterEventHandlers();
 });
