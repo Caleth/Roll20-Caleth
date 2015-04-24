@@ -89,6 +89,10 @@
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
 }
+.charsheet .sheet-wrapper div.sheet-item {
+    margin: 0 -2px;
+    height: 34px
+}
 .charsheet .sheet-wrapper table {
     border-collapse: collapse;
     border-spacing: 0;

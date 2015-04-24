@@ -188,6 +188,7 @@ PowerCard.Process = function(msg, player_obj) {
 		RowNumber += 1;
 		Tag = Tag.replace(/( #[0-9]+)/g, ""); // Hides multitag numbers...
 		Tag = Tag.replace(/( \*[0-9]+)/g, ""); // Hides same name tag numbers...
+        if (_.last(Tag) !== ":") Tag += ":";
 		// SHOW/HIDE THE TAG
 		if (Tag.charAt(0) !== "!") {
 			if (Tag.charAt(0) === "^") {

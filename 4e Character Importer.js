@@ -130,16 +130,24 @@ CharacterImport.Process = function (Token) {
         }
     }
     
-    function PowerWeapons(PowerString, Weapons, prefix, Attack) {
+    function PowerWeapons(PowerString, Weapons, prefix, Attack, MultiTarget, PowerName) {
         if (!Weapons) {return PowerString;}
-        else if (Weapons.length === 1) {
-            var res = PowerString;
-            res = res.replace(/\$Attack/gi, "[[1d20 + " + Weapons[0].AttackBonus + "]]");
-            res = res.replace(/\$Damage/gi, "[[" + Weapons[0].Damage + "]]")
-            res += AddTags(Weapons[0]);
-            return res;
-        } else if (/main weapon and off-hand weapon/.test(Attack)) {
-            keys = _.keys(Weapons);
+        var keys = _.keys(Weapons),
+            values = _.values(Weapons),
+            index = 1,
+            res;
+
+        function AddWeaponPower(Weapon, Name){
+            var res2 = PowerString;
+            res2 = res2.replace(/\$Attack/gi, "[[1d20 + " + Weapon.AttackBonus + "]]");
+            res2 = res2.replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]")
+            res2 += AddTags(Weapon, {Enhancement: Weapon.Enhancement});
+            var attrName = prefix + "weapon-" + index++,
+                attr = AddPCAttribute(attrName, res2);
+            return " --" + Name + "|" + attrName;
+        }
+        
+        if (/main weapon and off-hand weapon/.test(Attack)) {
             var Main = keys.shift(),
                 Off = keys.shift(),
                 obj;
@@ -147,68 +155,34 @@ CharacterImport.Process = function (Token) {
             mDamage = " --Main Hit|[[" + Weapons[Main].Damage + "]]";
             oAttack = " --Off Attack|[[1d20 + " + Weapons[Off].AttackBonus + "]] vs. AC";
             oDamage = " --Off Hit|[[" + Weapons[Off].Damage + "]]";
-            Main = mAttack + mDamage + AddTags(Weapons[Main], null, null, "Main");
-            Off = oAttack + oDamage + AddTags(Weapons[Off], null, null, "Off");
+            Main = mAttack + mDamage + AddTags(Weapons[Main], {Mod: "Main", Enhancement: Weapons[Main].Enhancement});
+            Off = oAttack + oDamage + AddTags(Weapons[Off], {Mod: "Off", Enhancement: Weapons[Off].Enhancement});
             res = PowerString.replace(/ \-\-Attack(.(?!\-\-(?!Hit)))+/, Main + Off)
-            if (keys.length > 0) {
-                var index = 1;
-                var attrName = prefix + "-weapon-" + index++,
-                    attr = AddPCAttribute(attrName, res);
-                res = "[Melee](" + "!button " + Character.id + " " + attrName + ")\n";
-                res += _.chain(Weapons)
-                        .pick(keys)
-                        .map(function(Weapon, Name){
-                            var res2 = PowerString;
-                            res2 = res2.replace(/\$Attack/gi, "[[1d20 + " + Weapon.AttackBonus + "]]");
-                            res2 = res2.replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]")
-                            res2 += AddTags(Weapon);
-                            var attrName = prefix + "-weapon-" + index++,
-                                attr = AddPCAttribute(attrName, res2);
-                            return "[" + Name + "](" + "!button " + Character.id + " " + attrName + ")\n";
-                        })
-                        .reduce(function(cmd, next) {return cmd += next}, "")
-                        .value()
-            }
-            return res;
+            var attrName = prefix + "weapon-" + index++,
+                attr = AddPCAttribute(attrName, res);
+            res = "!buttons " + Character.id + " " + MultiTarget + " " + PowerName + " --" + "Melee|" + attrName;
+            res += _.chain(Weapons)
+                    .pick(keys)
+                    .map(AddWeaponPower)
+                    .reduce(function(cmd, next) {return cmd += next}, "")
+                    .value()
         } else {
-            var index = 1;
-            return _.chain(Weapons)
-                    .map(function(Weapon, Name){
-                        var res = PowerString;
-                        res = res.replace(/\$Attack/gi, "[[1d20 + " + Weapon.AttackBonus + "]]");
-                        res = res.replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]")
-                        res += AddTags(Weapon);
-                        var attrName = prefix + "-weapon-" + index++,
-                            attr = AddPCAttribute(attrName, res);
-                        return "[" + Name + "](" + "!button " + Character.id + " " + attrName + ")\n";
-                    })
+            res = "!buttons " + Character.id + " " + MultiTarget + " " + PowerName;
+            res += _.chain(Weapons)
+                    .pick(keys)
+                    .map(AddWeaponPower)
                     .reduce(function(cmd, next) {return cmd += next}, "")
                     .value()
         }
-    }
-    
-    function MakeMark(MultiTarget) {
-        return "";
-        var Mark = "";
-        if (!isNaN(MultiTarget) && MultiTarget !== "") {
-            Mark = '[Mark Targets](!mark';
-            for (var i = 1; i <= MultiTarget; i++) {
-                Mark += " @{target|Target " + i + "|token_id}";            
-            }
-            Mark += ")\n"
-        } else if (MultiTarget !== "") {
-            Mark = "[Mark Targets](!mark @{target|Target 1|token_id} @{target|Target 2|token_id} @{target|Target 3|token_id}";
-            Mark += " @{target|Target 4|token_id} @{target|Target 5|token_id} @{target|Target 6|token_id})\n";
-        }
-        return Mark;
+        return res;
     }
     
     function MakeTitleTip(Power) {
         var res = " --title|";
         res += (Power.Display) ? Power.Display : "";
-        res += (Power.Keywords) ? "<br/>Keywords " + Power.Keywords : "";
-        res += (Power["Attack Type"]) ? "<br/>Attack Type " + Power["Attack Type"] : "";
-        res += (Power.Requirement) ? "<br/>Requirement " + Power.Requirement : "";
+        res += (Power.Keywords) ? "<br/>Keywords: " + Power.Keywords : "";
+        res += (Power["Attack Type"]) ? "<br/>Attack Type: " + Power["Attack Type"] : "";
+        res += (Power.Requirement) ? "<br/>Requirement: " + Power.Requirement : "";
         return (res !== " --title|") ? res : "";
     }
     
@@ -242,16 +216,25 @@ CharacterImport.Process = function (Token) {
             case "Defense":
             case "HitComponents":
             case "DamageComponents":
+            case "Enhancement":
+            case "Special":
                 return "";
             case "Flavor":
                 return " --emote|" + content;
             case "Attack":
                 tag = "Attack" + ((this && this.MultiAttack) ? "#" + this.MultiAttack.toString() : "");
-                content = content.replace(/\w+ vs./gi, "$Attack vs.");// + " (%%token_name%%)";
+                content = content.replace(/\w+( \+\d)? vs./gi, "$Attack vs.");
+                content = (/ or /.test(content)) ? content.replace(/\$Attack (.+) or /, "") : content;
+                content += ' of %%token_name%%'
                 break;
             case "Hit":
                 tag = "Hit" + ((this && this.MultiDamage) ? "#" + this.MultiDamage.toString() : "");
-                content = content.replace(/\dW( \+ [\w]+ modifier)?/gi, "$Damage");
+                content = content.replace(/\d\[W\]( \+ [\w]+ modifier)?/gi, "$Damage");
+                content = content.replace(/\dd\d+( \+ [\w]+ modifier)?/gi, "$Damage");
+                content = content.replace(/ Level 21:([^\.]*)\./, '');
+                break;
+            case "Critical":
+                if (this.Enhancement) {content = content.replace(/1(d\d damage) per plus/, this.Enhancement.toString() + "$1")}
                 break;
         }
         content = content.replace(/<table>[^<]+<\/table>/gi, "");
@@ -260,9 +243,9 @@ CharacterImport.Process = function (Token) {
         if (content !== "") return " --" + indent + tag + "|" + content;
     }
     
-    function AddTags(Source, MultiAttack, MultiDamage, Mod) {
+    function AddTags(Source, context) {
         return _.chain(Source)
-        .map(MakeTag, {MultiAttack: MultiAttack, MultiDamage: MultiDamage, Mod: Mod})
+        .map(MakeTag, context)
         .reduce(function (ps, tag) {return ps += tag}, "")
         .value();
     }
@@ -271,7 +254,7 @@ CharacterImport.Process = function (Token) {
         // BUILD POWERSTRING
         var PowerString = "!power --format|" + UsageFormat(Power["Power Usage"]) + " --name|" + Power.Name,
             // CHECK FOR MULTIPLE ATTACK POWERS
-            prefix = "power-" + idx,
+            prefix = "repeating_powers_" + idx + "_",
             Target = (Power.Target) ? Power.Target : (Power.Targets) ? Power.Targets : (Power[" Target"]) ? Power[" Target"] : (Power[" Targets"]) ? Power[" Targets"] : undefined,
             Attack = (Power.Attack) ? Power.Attack : (Power[" Attack"]) ? Power[" Attack"] : undefined,
             MultiTarget = (Target) ? isMultiTarget(Target) : "",
@@ -284,11 +267,10 @@ CharacterImport.Process = function (Token) {
         PowerString += (Power["Action Type"]) ? " --rightsub|" + Power["Action Type"] : "";
         PowerString += (Power.Flavor) ? " --emote|" + Power.Flavor : "";
 
-        PowerString += AddTags(Power, MultiAttack, MultiDamage);
-        PowerString = PowerWeapons(PowerString, Power.Weapons, prefix, Attack);
+        PowerString += AddTags(Power, {MultiAttack: MultiAttack, MultiDamage: MultiDamage});
+        PowerString = PowerWeapons(PowerString, Power.Weapons, prefix, Attack, String(MultiTarget), Power.Name);
 
-        var Mark = MakeMark(MultiTarget), 
-            Usage = "", 
+        var Usage = "", 
             ability = AddPCPower(Power.Name, "%{" + Name + "|-" + prefix + "}", true), 
             augment = Power.Name.match(/Augment (\d+)/);
         
@@ -303,18 +285,18 @@ CharacterImport.Process = function (Token) {
         }
         
         // FILL IN power_idx_ ATTRIBUTES
-        AddPCAttribute(prefix + "-name", Power.Name);
-        AddPCAttribute(prefix + "-action", (Power["Action Type"]) ? Power["Action Type"] : "");
-        AddPCAttribute(prefix + "-range", (Power["Attack Type"]) ? Power["Attack Type"] : "");
-        AddPCAttribute(prefix + "-level", (Power.Level) ? Power.Level : "");
-        AddPCAttribute(prefix + "-useage", (Power["Power Usage"]) ? Power["Power Usage"] : "");
-        var macro = AddPCAttribute(prefix + "-macro", PowerString);
-        AddPCAttribute(prefix + "-toggle", "on");
+        AddPCAttribute(prefix + "name", Power.Name);
+        AddPCAttribute(prefix + "action", (Power["Action Type"]) ? Power["Action Type"] : "");
+        AddPCAttribute(prefix + "range", (Power["Attack Type"]) ? Power["Attack Type"] : "");
+        AddPCAttribute(prefix + "level", (Power.Level) ? Power.Level : "");
+        AddPCAttribute(prefix + "useage", (Power["Power Usage"]) ? Power["Power Usage"] : "");
+        var macro = AddPCAttribute(prefix + "macro", PowerString);
+        AddPCAttribute(prefix + "toggle", "on");
 
         if (Power.Weapons && _.keys(Power.Weapons).length > 1) {
-            ability.set("action", Usage + Mark + "!buttons " + macro.id);                
+            ability.set("action", Usage + "!buttons " + macro.id);                
         } else {
-            ability.set("action", Usage + Mark + "%{" + Name + "|-" + prefix + "}");        
+            ability.set("action", Usage + "%{" + Name + "|-" + prefix + "}");        
         }        
     }
 
@@ -524,7 +506,7 @@ CharacterImport.Process = function (Token) {
     var power_count = 0;
     _.each(parsed.Powers, function(power, name) {
         power.Name = name;
-        MakePower(power, ++power_count, CharacterName);
+        MakePower(power, power_count++, CharacterName);
     });
     _.each(parsed["Item Powers"], function(value, name) {
         var Powers = value.split("Power");
@@ -550,7 +532,7 @@ CharacterImport.Process = function (Token) {
                     ItemPower[key] = value.trim();
                 });
             }
-            MakePower(ItemPower, ++power_count, CharacterName);
+            MakePower(ItemPower, power_count++, CharacterName);
         });
     });
     
