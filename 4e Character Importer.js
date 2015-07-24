@@ -6,19 +6,18 @@ on("chat:message", function (msg) {
 
     // Get the API Chat Command
     var content = msg.content.replace("(GM) ", ""),
-        command = content.split(" ", 1);
+        command = content.split(" ", 1),
+        args = content.split(" "),
+        selected = _.pluck(msg.selected, '_id');
 
     if (command == "!build-character") {
-        var args = content.split(" ");
         args.shift();
-        var selected = _.pluck(msg.selected, '_id')
-        
-        _.each(_.union(args,selected), function(id){
-            var Token = getObj("graphic",id);
-            CharacterImport.Process(Token);
+
+        _.each(_.union(args, selected), function (id) {
+            CharacterImport.Process(getObj("graphic", id));
         });
     }
-});    
+});
 
 CharacterImport.Process = function (Token) {
     if (Token === undefined || Token.get("subtype") != "token") return;
@@ -39,10 +38,11 @@ CharacterImport.Process = function (Token) {
     });
 
     var Character, charLevel;
-    
-    // DO NOT CREATE IF SHEET EXISTS
+
     if (CheckSheet.length > 0) {
         log("Updating " + CharacterName)
+
+        // DO NOT CREATE IF SHEET EXISTS
         Character = CheckSheet[0];
     } else {
         log("Creating " + CharacterName)
@@ -51,7 +51,6 @@ CharacterImport.Process = function (Token) {
         Character = createObj("character", {
             avatar: Token.get("imgsrc"),
             name: CharacterName,
-//                gmnotes: Token.get("gmnotes"),
             archived: false
         });
     }
@@ -60,13 +59,13 @@ CharacterImport.Process = function (Token) {
         if (!value) {
             return;
         }
-        var currentAttribute = findObjs({ 
-          _type: "attribute",
-          _characterid: Character.id,
-          name: attr
+        var currentAttribute = findObjs({
+            _type: "attribute",
+            _characterid: Character.id,
+            name: attr
         });
         if (currentAttribute[0] && !/^repeating/.test(attr)) {
-            currentAttribute[0].set({current: value, max: value});
+            currentAttribute[0].set({ current: value, max: value });
             return currentAttribute[0];
         } else {
             return createObj("attribute", {
@@ -82,13 +81,13 @@ CharacterImport.Process = function (Token) {
         if (!value) {
             return;
         }
-        var currentAttribute = findObjs({ 
-          _type: "attribute",
-          _characterid: Character.id,
-          name: attr
+        var currentAttribute = findObjs({
+            _type: "attribute",
+            _characterid: Character.id,
+            name: attr
         });
         if (currentAttribute[0]) {
-            currentAttribute[0].set({current: value});
+            currentAttribute[0].set({ current: value });
             return currentAttribute[0];
         } else {
             return createObj("attribute", {
@@ -100,13 +99,13 @@ CharacterImport.Process = function (Token) {
     }
 
     function AddPCPower(powername, powerstring, tokenaction) {
-        var currentAbility = findObjs({ 
-          _type: "ability",
-          _characterid: Character.id,
-          name: powername
+        var currentAbility = findObjs({
+            _type: "ability",
+            _characterid: Character.id,
+            name: powername
         });
         if (currentAbility[0]) {
-            currentAbility[0].set({description: "", action: powerstring, istokenaction: tokenaction});
+            currentAbility[0].set({ description: "", action: powerstring, istokenaction: tokenaction });
             return currentAbility[0];
         } else {
             return createObj("ability", {
@@ -118,9 +117,9 @@ CharacterImport.Process = function (Token) {
             });
         }
     }
-    
+
     function UsageFormat(Usage) {
-        switch(Usage) {
+        switch (Usage) {
             case "At-Will":
             case "Encounter":
             case "Daily":
@@ -129,24 +128,24 @@ CharacterImport.Process = function (Token) {
                 return "item"
         }
     }
-    
+
     function PowerWeapons(PowerString, Weapons, prefix, Attack, MultiTarget, PowerName) {
-        if (!Weapons) {return PowerString;}
+        if (!Weapons) { return PowerString; }
         var keys = _.keys(Weapons),
             values = _.values(Weapons),
             index = 1,
             res;
 
-        function AddWeaponPower(Weapon, Name){
+        function AddWeaponPower(Weapon, Name) {
             var res2 = PowerString;
             res2 = res2.replace(/\$Attack/gi, "[[1d20 + " + Weapon.AttackBonus + "]]");
             res2 = res2.replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]")
-            res2 += AddTags(Weapon, {Enhancement: Weapon.Enhancement});
+            res2 += AddTags(Weapon, { Enhancement: Weapon.Enhancement });
             var attrName = prefix + "weapon-" + index++,
                 attr = AddPCAttribute(attrName, res2);
             return " --" + Name + "|" + attrName;
         }
-        
+
         if (/main weapon and off-hand weapon/.test(Attack)) {
             var Main = keys.shift(),
                 Off = keys.shift(),
@@ -155,8 +154,8 @@ CharacterImport.Process = function (Token) {
             mDamage = " --Main Hit|[[" + Weapons[Main].Damage + "]]";
             oAttack = " --Off Attack|[[1d20 + " + Weapons[Off].AttackBonus + "]] vs. AC";
             oDamage = " --Off Hit|[[" + Weapons[Off].Damage + "]]";
-            Main = mAttack + mDamage + AddTags(Weapons[Main], {Mod: "Main", Enhancement: Weapons[Main].Enhancement});
-            Off = oAttack + oDamage + AddTags(Weapons[Off], {Mod: "Off", Enhancement: Weapons[Off].Enhancement});
+            Main = mAttack + mDamage + AddTags(Weapons[Main], { Mod: "Main", Enhancement: Weapons[Main].Enhancement });
+            Off = oAttack + oDamage + AddTags(Weapons[Off], { Mod: "Off", Enhancement: Weapons[Off].Enhancement });
             res = PowerString.replace(/ \-\-Attack(.(?!\-\-(?!Hit)))+/, Main + Off)
             var attrName = prefix + "weapon-" + index++,
                 attr = AddPCAttribute(attrName, res);
@@ -164,19 +163,19 @@ CharacterImport.Process = function (Token) {
             res += _.chain(Weapons)
                     .pick(keys)
                     .map(AddWeaponPower)
-                    .reduce(function(cmd, next) {return cmd += next}, "")
+                    .reduce(function (cmd, next) { return cmd += next }, "")
                     .value()
         } else {
             res = "!buttons " + Character.id + " " + MultiTarget + " " + PowerName;
             res += _.chain(Weapons)
                     .pick(keys)
                     .map(AddWeaponPower)
-                    .reduce(function(cmd, next) {return cmd += next}, "")
+                    .reduce(function (cmd, next) { return cmd += next }, "")
                     .value()
         }
         return res;
     }
-    
+
     function MakeTitleTip(Power) {
         var res = " --title|";
         res += (Power.Display) ? Power.Display : "";
@@ -185,14 +184,14 @@ CharacterImport.Process = function (Token) {
         res += (Power.Requirement) ? "<br/>Requirement: " + Power.Requirement : "";
         return (res !== " --title|") ? res : "";
     }
-    
+
     function MakeTag(content, tag) {
         var indent;
-        if (typeof content === Object) {return "";}
-        if (tag.match(/^\s+/)) { 
-            indent = "^" + tag.match(/^\s+/).length; 
-        } else { 
-            indent = "";            
+        if (typeof content === Object) { return ""; }
+        if (tag.match(/^\s+/)) {
+            indent = "^" + tag.match(/^\s+/).length;
+        } else {
+            indent = "";
         };
         tag = tag.trim();
         switch (tag) {
@@ -234,7 +233,7 @@ CharacterImport.Process = function (Token) {
                 content = content.replace(/ Level 21:([^\.]*)\./, '');
                 break;
             case "Critical":
-                if (this.Enhancement) {content = content.replace(/1(d\d damage) per plus/, this.Enhancement.toString() + "$1")}
+                if (this.Enhancement) { content = content.replace(/1(d\d damage) per plus/, this.Enhancement.toString() + "$1") }
                 break;
         }
         content = content.replace(/<table>[^<]+<\/table>/gi, "");
@@ -242,14 +241,14 @@ CharacterImport.Process = function (Token) {
         if (this.Mod) tag = this.Mod + " " + tag
         if (content !== "") return " --" + indent + tag + "|" + content;
     }
-    
+
     function AddTags(Source, context) {
         return _.chain(Source)
         .map(MakeTag, context)
-        .reduce(function (ps, tag) {return ps += tag}, "")
+        .reduce(function (ps, tag) { return ps += tag }, "")
         .value();
     }
-    
+
     function MakePower(Power, idx, Name) {
         // BUILD POWERSTRING
         var PowerString = "!power --format|" + UsageFormat(Power["Power Usage"]) + " --name|" + Power.Name,
@@ -267,13 +266,13 @@ CharacterImport.Process = function (Token) {
         PowerString += (Power["Action Type"]) ? " --rightsub|" + Power["Action Type"] : "";
         PowerString += (Power.Flavor) ? " --emote|" + Power.Flavor : "";
 
-        PowerString += AddTags(Power, {MultiAttack: MultiAttack, MultiDamage: MultiDamage});
+        PowerString += AddTags(Power, { MultiAttack: MultiAttack, MultiDamage: MultiDamage });
         PowerString = PowerWeapons(PowerString, Power.Weapons, prefix, Attack, String(MultiTarget), Power.Name);
 
-        var Usage = "", 
-            ability = AddPCPower(Power.Name, "%{" + Name + "|-" + prefix + "}", true), 
+        var Usage = "",
+            ability = AddPCPower(Power.Name, "%{" + Name + "|-" + prefix + "}", true),
             augment = Power.Name.match(/Augment (\d+)/);
-        
+
         if (augment && parseInt(augment[1])) {
             Usage = "!use-ammo " + Character.id + " power-points " + parseInt(augment[1]) + "\n"
         } else if (/Daily/.test(Power["Power Usage"]) || /Consumable/.test(Power["Power Usage"])) {
@@ -283,7 +282,7 @@ CharacterImport.Process = function (Token) {
         } else if (/Encounter/.test(Power["Power Usage"])) {
             Usage = "!use-power encounter " + ability.id + "\n";
         }
-        
+
         // FILL IN power_idx_ ATTRIBUTES
         AddPCAttribute(prefix + "name", Power.Name);
         AddPCAttribute(prefix + "action", (Power["Action Type"]) ? Power["Action Type"] : "");
@@ -294,10 +293,10 @@ CharacterImport.Process = function (Token) {
         AddPCAttribute(prefix + "toggle", "on");
 
         if (Power.Weapons && _.keys(Power.Weapons).length > 1) {
-            ability.set("action", Usage + "!buttons " + macro.id);                
+            ability.set("action", Usage + "!buttons " + macro.id);
         } else {
-            ability.set("action", Usage + "%{" + Name + "|-" + prefix + "}");        
-        }        
+            ability.set("action", Usage + "%{" + Name + "|-" + prefix + "}");
+        }
     }
 
     function StatTotal(stat) {
@@ -352,8 +351,8 @@ CharacterImport.Process = function (Token) {
                 item = 0,
                 misc = 0;
             for (bonus in attr) {
-               if (bonus === undefined) continue;
-               switch (bonus) {
+                if (bonus === undefined) continue;
+                switch (bonus) {
                     case "Total":
                         break;
                     case "Armor":
@@ -390,7 +389,7 @@ CharacterImport.Process = function (Token) {
     var HP = AddPCAttributeMax("hp", StatTotal(stats["Hit Points"]));
     var Surges = AddPCAttributeMax("surges", StatTotal(stats["Healing Surges"]));
     AddPCAttribute("surge-value-bonus", StatTotal(stats["Healing Surge Value"]));
-    
+
     var str = StatTotal(stats.Strength);
     var con = StatTotal(stats.Constitution);
     var dex = StatTotal(stats.Dexterity);
@@ -444,32 +443,32 @@ CharacterImport.Process = function (Token) {
 
     var NamedElements = {
         "Class": "class",
-            "Paragon Path": "paragon",
-            "Epic Destiny": "epic",
-            "Race": "race",
-            "Deity": "deity",
-            "Size": "size",
-            "Vision": "init-special-senses"
+        "Paragon Path": "paragon",
+        "Epic Destiny": "epic",
+        "Race": "race",
+        "Deity": "deity",
+        "Size": "size",
+        "Vision": "init-special-senses"
     };
     var RepeatElements = {
         "Feat": {
             "repeat": "repeating_feats_",
-                "name": "_feat",
-                "count": 0
+            "name": "_feat",
+            "count": 0
         },
-            "Class Feature": {
+        "Class Feature": {
             "repeat": "repeating_class-feats_",
-                "name": "_class-feat",
-                "count": 0
+            "name": "_class-feat",
+            "count": 0
         },
-            "Racial Trait": {
+        "Racial Trait": {
             "repeat": "repeating_race-feats_",
-                "name": "_race-feat",
-                "count": 0
+            "name": "_race-feat",
+            "count": 0
         }
     };
     var languages = [];
-    _.each(parsed.RulesElements, function(elem) {
+    _.each(parsed.RulesElements, function (elem) {
         var repeat;
         if (NamedElements[elem.type] !== undefined) {
             AddPCAttribute(NamedElements[elem.type], elem.name);
@@ -490,13 +489,13 @@ CharacterImport.Process = function (Token) {
     var MiscMod = 0;
     var Trained = 0;
     var ShowTrained = "";
-    _.each(SkillList, function(skill) {
+    _.each(SkillList, function (skill) {
         Trained = stats[skill + " Trained"] / 5;
         MiscMod = StatTotal(stats[skill + " Misc"]);
         AddPCAttribute(skill.toLowerCase() + "-trained", Trained);
         AddPCAttribute(skill.toLowerCase() + "-misc", MiscMod);
     });
-    _.each(ArmourPenSkills, function(skill) {
+    _.each(ArmourPenSkills, function (skill) {
         AddPCAttribute(skill.toLowerCase() + "-pen", StatTotal(stats["Armor Penalty"]));
     });
 
@@ -504,15 +503,15 @@ CharacterImport.Process = function (Token) {
 
     // ADD POWERS
     var power_count = 0;
-    _.each(parsed.Powers, function(power, name) {
+    _.each(parsed.Powers, function (power, name) {
         power.Name = name;
         MakePower(power, power_count++, CharacterName);
     });
-    _.each(parsed["Item Powers"], function(value, name) {
+    _.each(parsed["Item Powers"], function (value, name) {
         var Powers = value.split("Power");
         Powers.shift();
-        _.each(Powers, function(text, index) {
-            var ItemPower = {Name: (Powers.length > 1) ? name + " " + ++index : name}
+        _.each(Powers, function (text, index) {
+            var ItemPower = { Name: (Powers.length > 1) ? name + " " + ++index : name }
             var UseKeys = text.match(/\(([^\)]+)\)/);
             UseKeys = (UseKeys) ? UseKeys[1].split(/[\*\u2022]/) : [];
             if (UseKeys.length > 0) {
@@ -528,19 +527,19 @@ CharacterImport.Process = function (Token) {
             if (!/:/.test(text)) {
                 ItemPower.Text = text;
             } else {
-                text = text.replace(/((?:Augment \d+)|(?:\w+)):([^\.]+\.)/gi, function(match, key, value) {
+                text = text.replace(/((?:Augment \d+)|(?:\w+)):([^\.]+\.)/gi, function (match, key, value) {
                     ItemPower[key] = value.trim();
                 });
             }
             MakePower(ItemPower, power_count++, CharacterName);
         });
     });
-    
+
     log("powers succeded");
 
     // ADD LOOT
     var loot_count = 0;
-    _.each(stats.Loot, function(item) {
+    _.each(stats.Loot, function (item) {
         var name, value, weight, quantity, disc;
         name = item.name;
         quantity = (item.count) ? item.count : 0;
@@ -555,7 +554,7 @@ CharacterImport.Process = function (Token) {
             disc += "\n" + (item.elements["2"].Property) ? item.elements["2"].Property : ""
             disc += (item.elements["2"].Special) ? item.elements["2"].Special : "";
         }
-        
+
         if (quantity > 0) {
             AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-name", name);
             AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-value", value);
