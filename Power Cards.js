@@ -32,21 +32,37 @@ on("chat:message", function(msg) {
         PowerCard.Process(msg, player_obj);
     }
     if (command === "!power_version") {
+<<<<<<< HEAD
         sendChat("HoneyBadger", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".", null, {noarchive: true});
+=======
+        sendChat("HoneyBadger", "/w " + msg.who + " You are using version " + PowerCards_Version + " of PowerCards, authored by " + PowerCards_Author + ", which was last updated on: " + PowerCards_LastUpdated + ".");
+>>>>>>> origin/master
     }
     if (command === "!power_debug_on") {
         msg.who = msg.who.replace(" (GM)", "")
         state.PowerCard_Debug = true;
+<<<<<<< HEAD
         sendChat("HoneyBadger", "/w " + msg.who + " Debugging: " + ((state.PowerCard_Debug) ? "On" : "Off"), null, {noarchive: true});
+=======
+        sendChat("HoneyBadger", "/w " + msg.who + " Debugging: " + ((state.PowerCard_Debug) ? "On" : "Off"));
+>>>>>>> origin/master
     }
     if (command === "!power_debug_off") {
         msg.who = msg.who.replace(" (GM)", "")
         state.PowerCard_Debug = false;
+<<<<<<< HEAD
         sendChat("HoneyBadger", "/w " + msg.who + " Debugging: " + ((state.PowerCard_Debug) ? "On" : "Off"), null, {noarchive: true});
     }
     if (command === "!power_formats") {
         msg.who = msg.who.replace(" (GM)", "")
         sendChat("HoneyBadger", "/w " + msg.who + " " + state.PowerCard_Formats, null, {noarchive: true});
+=======
+        sendChat("HoneyBadger", "/w " + msg.who + " Debugging: " + ((state.PowerCard_Debug) ? "On" : "Off"));
+    }
+    if (command === "!power_formats") {
+        msg.who = msg.who.replace(" (GM)", "")
+        sendChat("HoneyBadger", "/w " + msg.who + " " + state.PowerCard_Formats);
+>>>>>>> origin/master
     }
 });
  
@@ -69,12 +85,20 @@ PowerCard.Process = function(msg, player_obj) {
     var SHOW_AVATAR = true; // Set to false to hide character sheet avatar in custom emotes
     var USE_DEFAULT_FORMAT = false; // Set to true if you want powercards to default formatting
     var USE_PLAYER_COLOR = false; // Set to true to override all color formatting
+<<<<<<< HEAD
     var USE_TIMESTAMPS = true; // Set to false to turn off time stamps in chat
+=======
+    var USE_TIMESTAMPS = false; // Set to false to turn off time stamps in chat
+>>>>>>> origin/master
     
     // REPLACE INLINE ROLLS WITH EXPRESSIONS
     if (msg.inlinerolls !== undefined) {
         _.each(msg.inlinerolls, function(roll, Count){
+<<<<<<< HEAD
             msg.content = msg.content.replace("$[[" + Count + "]]", ("[[ " + roll.expression + " ]]").replace(/\[\[ (\d|\()/g,"[[$1"));
+=======
+            msg.content = msg.content.replace("$[[" + Count + "]]", "[[" + roll.expression + " ]]");
+>>>>>>> origin/master
         });
     }
     
@@ -146,7 +170,11 @@ PowerCard.Process = function(msg, player_obj) {
                     if (Tag.indexOf("%%") !== -1 || Content.indexOf("%%") !== -1) {
                         Tag = getTargetInfo(Tag, PowerCard.target_list);
                         Content = getTargetInfo(Content, PowerCard.target_list);
+<<<<<<< HEAD
                       PowerCard.target_list.shift();
+=======
+                        PowerCard.target_list.shift();
+>>>>>>> origin/master
                     }
                 }
                 PowerCard[Tag] = Content;
@@ -177,6 +205,7 @@ PowerCard.Process = function(msg, player_obj) {
         var RollBase = 0;
         var RollTotal = 0;
         var Rolls = {};
+<<<<<<< HEAD
         _.each(x[0].inlinerolls, function(Roll) {
             _.each(Roll.results.rolls, function(RollPart) {
                 if (this.RollID === undefined && RollPart.type === "L" && RollPart.text.indexOf("$") !== -1) {
@@ -189,6 +218,36 @@ PowerCard.Process = function(msg, player_obj) {
                     this.RollID = undefined;
                 }
             }, {});
+=======
+        Object.keys(x[0].inlinerolls).forEach(function(Roll) {
+            var RollCount = 0;
+            while (x[0].inlinerolls[Roll].results.rolls[RollCount] !== undefined) {
+                if (x[0].inlinerolls[Roll].results.rolls[RollCount].type === "L" && x[0].inlinerolls[Roll].results.rolls[RollCount].text.indexOf("$") !== -1) {
+                    RollText = x[0].inlinerolls[Roll].results.rolls[RollCount].text.split("|");
+                    var t = 0;
+                    while (RollText[t] !== undefined) {
+                        if (RollText[t].charAt(0) === "$") RollID = RollText[t];
+                        t++;
+                    }
+                    RollResults = x[0].inlinerolls[Roll].results.rolls[RollCount + 1].results;
+                    if (RollResults === undefined) {
+                        RollBase = x[0].inlinerolls[Roll].results.total;
+                    } else {
+                        t = 0;
+                        while (RollResults[t] !== undefined) {
+                            if (!RollResults[t].d) RollBase = RollResults[t].v;
+                            t++;
+                        }
+                    }
+                    RollTotal = x[0].inlinerolls[Roll].results.total;
+                    Rolls[RollID] = {
+                        "base": RollBase,
+                        "total": RollTotal
+                    };
+                }
+                RollCount++;
+            }
+>>>>>>> origin/master
         });
         
         // PREVENT EMPTY EMOTE ERROR IN ROLL20 CHAT...
@@ -241,7 +300,11 @@ PowerCard.Process = function(msg, player_obj) {
         var ShadowBoxStyle = ""
         + "clear: both; "
         + "margin-left: -10px; "
+<<<<<<< HEAD
 //        + "box-shadow: " + PowerCard.boxshadow + "; "
+=======
+        + "box-shadow: " + PowerCard.boxshadow + "; "
+>>>>>>> origin/master
         + "border-radius: " + PowerCard.corners + "px; ";
         
         // CREATE TITLE STYLE...
@@ -284,6 +347,7 @@ PowerCard.Process = function(msg, player_obj) {
         Subtitle += (PowerCard.leftsub !== undefined) ? PowerCard.leftsub : "";
         Subtitle += (PowerCard.leftsub !== undefined && PowerCard.rightsub !== undefined) ? Diamond : "";
         Subtitle += (PowerCard.rightsub !== undefined) ? PowerCard.rightsub : "";
+<<<<<<< HEAD
         
         // ADD TITLE AND SUBTITLE TO DISPLAY OBJECT...
         Display += doInlineFormatting(Title + Subtitle + "</span></div>", ALLOW_URLS, ALLOW_HIDDEN_URLS);
@@ -295,6 +359,19 @@ PowerCard.Process = function(msg, player_obj) {
         var RowNumber = 1;
         var Indent = 0;
         
+=======
+        
+        // ADD TITLE AND SUBTITLE TO DISPLAY OBJECT...
+        Display += doInlineFormatting(Title + Subtitle + "</span></div>", ALLOW_URLS, ALLOW_HIDDEN_URLS);
+        
+        // CREATE ROW STYLES & OTHER INFO...
+        var OddRow = "color: " + PowerCard.orowtx + "; background-color: " + PowerCard.orowbg + "; ";
+        var EvenRow = "color: " + PowerCard.erowtx + "; background-color: " + PowerCard.erowbg + "; ";
+        var RowBackground = OddRow;
+        var RowNumber = 1;
+        var Indent = 0;
+        
+>>>>>>> origin/master
         // ROW STYLE...
         var RowStyle = ""
         + "line-height: 1.1em; "
@@ -372,11 +449,20 @@ PowerCard.Process = function(msg, player_obj) {
                     }
                     Operand = Conditional.shift();
                     if (Operand !== undefined) {
+<<<<<<< HEAD
                         if (Operand.toLowerCase() === "and" && !Success) break;
                         if (Operand.toLowerCase() === "or" && Success) break;
                     }
                 }
                 Tag = (Success) ? Tag.replace(/\?\?(.*?)\?\?/, "").trim() : Tag.replace(/\?\?(.*?)\?\?/, "$").trim();
+=======
+                        if (Operand.toLowerCase() === "and" && Success === false) break;
+                        if (Operand.toLowerCase() === "or" && Success === true) break;
+                    }
+                }
+                if (Success) Tag = Tag.replace(/\?\?(.*?)\?\?/, "").trim();
+                else Tag = Tag.replace(/\?\?(.*?)\?\?/, "$").trim();
+>>>>>>> origin/master
             }
             PowerCard[Tag] = PowerCard[OriginalTag];
             Keys[KeyCount] = Tag;
@@ -384,7 +470,15 @@ PowerCard.Process = function(msg, player_obj) {
         });
         
         // SECOND PASS FOR HIDDEN TAGS...
+<<<<<<< HEAD
         Keys = _.filter(Keys, function(Tag){ return (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls") });
+=======
+        var NewKeys = [];
+        Keys.forEach(function(Tag) {
+            if (Tag.charAt(0) !== "$" && Tag !== "hroll" && Tag !== "hrolls") NewKeys.push(Tag);
+        });
+        Keys = NewKeys;
+>>>>>>> origin/master
         
         // LOOP THROUGH REMAINING KEYS TO CREATE ROW DIVS FROM POWERCARD OBJECT...
         KeyCount = 0;
@@ -437,15 +531,25 @@ PowerCard.Process = function(msg, player_obj) {
         // SEND TO CHAT...
         var TimeStamp = "";
         var Spacer = "/desc ";
+<<<<<<< HEAD
+=======
+        var archive = {};
+>>>>>>> origin/master
         if (USE_TIMESTAMPS) {
             TimeStamp = "(" + getCurrentTime() + ") " + msg.who;
             Spacer = " ";
         }
         
+<<<<<<< HEAD
+=======
+        if (state.PowerCard_Debug) {_.extend(archive, {noarchive: true})}
+        
+>>>>>>> origin/master
         // WHISPER
         if (PowerCard.whisper !== undefined) {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
+<<<<<<< HEAD
                     sendChat(TimeStamp, Spacer);
                     sendChat(TimeStamp, "/direct " + PowerCard.emote)
                 } else {
@@ -454,10 +558,21 @@ PowerCard.Process = function(msg, player_obj) {
             }
             _.each(PowerCard.whisper.split(","), function(y) {
                 sendChat(msg.who, "/w " + y.split(" ")[0].trim() + " " + Display);
+=======
+                    sendChat(TimeStamp, Spacer, null, archive);
+                    sendChat(TimeStamp, "/direct " + PowerCard.emote, null, archive)
+                } else {
+                    sendChat(TimeStamp, "/emas " + PowerCard.emote, null, archive);
+                }
+            }
+            _.each(PowerCard.whisper.split(","), function(y) {
+                sendChat(msg.who, "/w " + y.trim() + " " + Display, null, archive);
+>>>>>>> origin/master
             });
         } else {
             if (PowerCard.emote !== undefined) {
                 if (PowerCard.charid !== undefined || PowerCard.tokenid !== undefined) {
+<<<<<<< HEAD
                     sendChat(TimeStamp, Spacer);
                     sendChat(TimeStamp, "/direct " + PowerCard.emote + Display);
                 } else {
@@ -467,6 +582,17 @@ PowerCard.Process = function(msg, player_obj) {
             } else {
                 sendChat(TimeStamp, Spacer);
                 sendChat(TimeStamp, "/direct " + Display);
+=======
+                    sendChat(TimeStamp, Spacer, null, archive);
+                    sendChat(TimeStamp, "/direct " + PowerCard.emote + Display, null, archive);
+                } else {
+                    sendChat(TimeStamp, "/emas " + PowerCard.emote, null, archive);
+                    sendChat(TimeStamp, "/direct " + Display, null, archive);
+                }
+            } else {
+                sendChat(TimeStamp, Spacer, null, archive);
+                sendChat(TimeStamp, "/direct " + Display, null, archive);
+>>>>>>> origin/master
             }
         }
     });
@@ -783,11 +909,14 @@ function getTargetInfo(content, TargetList) {
         
         // TOKEN CHARMS
         return content.replace(/%%(.*?)%%/g, function(m, charm) {
+<<<<<<< HEAD
             var conditions = state.Conditions.characters[Token.get("represents")],
                 condition = charm.match(/cond\.(.*)/);
             if (condition) {
                 return (conditions !== undefined && _.has(conditions.conditions, condition[1])) ? 1 : 0;
             }
+=======
+>>>>>>> origin/master
             var attr;
             switch (charm) {
                 case 'token_name':
@@ -805,4 +934,8 @@ function getTargetInfo(content, TargetList) {
             }
         });
     }
+<<<<<<< HEAD
 // END FUNCTIONS ///////////////////////////////////////////////////////////////
+=======
+// END FUNCTIONS ///////////////////////////////////////////////////////////////
+>>>>>>> origin/master
