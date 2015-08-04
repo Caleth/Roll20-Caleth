@@ -116,6 +116,19 @@
         <xsl:value-of select="$comma"/>
     </xsl:template>
     
+    <xsl:template match="RulesElement/text()">
+        <xsl:param name="name">Text</xsl:param>
+        <xsl:param name="comma">
+            <xsl:call-template name="comma"/>
+        </xsl:param>
+        <xsl:text>"</xsl:text>
+        <xsl:value-of select="$name"/>
+        <xsl:text>": "</xsl:text>
+        <xsl:value-of select="normalize-space(.)" disable-output-escaping="yes"/>
+        <xsl:text>"</xsl:text>
+        <xsl:value-of select="$comma"/>
+    </xsl:template>
+    
     <xsl:template match="specific[@name='Level' and parent::RulesElement[@type='Magic Item']]">
         <xsl:param name="name" select="'Enhancement'"/>
         <xsl:param name="comma">
@@ -219,8 +232,8 @@
         <xsl:text>", "equip" : "</xsl:text>
         <xsl:value-of select="ancestor::loot/@equip-count"/>
         <xsl:text>"</xsl:text>
-        <xsl:if test="$main[@internal-id=$internal-id]/specific[substring(@name,1,1)!='_' and @name!='count' and @name!='type' and normalize-space(text())!='']">,&#xA;</xsl:if>
-        <xsl:apply-templates select="$main[@internal-id=$internal-id]/specific[substring(@name,1,1)!='_' and @name!='count' and @name!='type' and normalize-space(text())!='']"/>
+        <xsl:if test="$main[@internal-id=$internal-id]/specific[substring(@name,1,1)!='_' and @name!='count' and @name!='type' and @name!='Full Text' and normalize-space(text())!='']">,&#xA;</xsl:if>
+        <xsl:apply-templates select="$main[@internal-id=$internal-id]/specific[substring(@name,1,1)!='_' and @name!='count' and @name!='type' and @name!='Full Text' and normalize-space(text())!=''] | $main[@internal-id=$internal-id]/text()[normalize-space(.)!='']"/>
         <xsl:text>}</xsl:text>
         <xsl:call-template name="comma"/>
     </xsl:template>

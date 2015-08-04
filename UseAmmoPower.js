@@ -1,9 +1,12 @@
 // https://gist.github.com/Caleth/77aa90a4d0a328bfca48
+// By:       The Aaron, Arcane Scriptomancer
+// Modified  Caleth
+// Contact:  https://app.roll20.net/users/104025/the-aaron
 
 var UseAmmoPower = UseAmmoPower || (function () {
     'use strict';
 
-    var version = 0.1,
+	var version = 0.31,
 		schemaVersion = 0.1,
 
 	ch = function (c) {
@@ -78,7 +81,7 @@ var UseAmmoPower = UseAmmoPower || (function () {
 		+ '</div>'
 	+ '</div>'
 	+ '<div style="padding-left:10px;">'
-		+ '<b><span style="font-family: serif;">!use-ammo &lt;Token/Character ID&gt; &lt;Attribute&gt; &lt;Count&gt;</span></b>'
+		+ '<b><span style="font-family: serif;">!use-ammo ' + ch('<') + 'Token/Character ID' + ch('>') + ' ' + ch('<') + 'Attribute' + ch('>') + ' ' + ch('<') + 'Count' + ch('>') + '</span></b>'
 		+ '<div style="padding-left: 10px;padding-right:20px">'
 			+ '<p>' + ch('<') + 'Token/Character ID' + ch('>') + ' - Internal ID of the user. Either copied from !get-represents or @{Name|character_id}</p>'
 			+ '<p>' + ch('<') + 'Attribute' + ch('>') + ' - Name of the attribute used to track available usages.</p>'
@@ -126,7 +129,7 @@ var UseAmmoPower = UseAmmoPower || (function () {
 	        return;
 	    }
 
-	    var who = getObj('player', msg.playerid).get('_displayname').split(' ')[0];
+		who=getObj('player',msg.playerid).get('_displayname').split(' ')[0];
 	    args = msg.content.split(" ");
 	    switch (args[0]) {
 
@@ -322,14 +325,16 @@ var UseAmmoPower = UseAmmoPower || (function () {
 	    }
 	},
 	handlePower = function (msg, args, who) {
+		var obj,
+        notice;
 	    if (_.contains(['encounter', 'daily'], args[1])) {
-	        var obj = getObj('ability', args[2]);
+	        obj = getObj('ability', args[2]);
 	        if (obj) {
 	            obj.set({
 	                istokenaction: false
 	            });
 	            if (_.contains(state.UseAmmoPower.usedPowers[args[1]], args[2])) {
-	                var notice = '<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
+	                notice = '<div style="border: 1px solid black; background-color: white; padding: 3px 3px;">'
                                 + '<span style="font-weight:bold;color:#990000;">Error:</span> '
                                 + capitalize(args[1]) + ' Power ' + '[' + obj.get('name') + '] has already been used.'
                             + '</div>';
@@ -493,7 +498,7 @@ var UseAmmoPower = UseAmmoPower || (function () {
 	},
 
 	checkInstall = function () {
-	    if (!_.has(state, 'UsePower') || state.UsePower.version !== schemaVersion) {
+	    if (!_.has(state, 'UseAmmoPower') || state.UseAmmoPower.version !== schemaVersion) {
 	        state.UseAmmoPower = {
 	            version: schemaVersion,
 	            usedPowers: {

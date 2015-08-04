@@ -1,17 +1,15 @@
 ﻿import lxml.etree as ET
 from joblib import Parallel, delayed
-import os
-import codecs
-import sys 
-UTF8Writer = codecs.getwriter('utf8')
-sys.stdout = UTF8Writer(sys.stdout)
-namespaces = {'exslt':'http://exslt.org/common'}
+import os, traceback
 
 def parseFile(file):
-    dom = ET.parse(file)
-    xslt = ET.parse('dnd4eToJSON.xslt')
-    transform = ET.XSLT(xslt)
-    newdom = transform(dom)
+    try:
+        dom = ET.parse(file)
+        xslt = ET.parse('dnd4eToJSON.xslt')
+        transform = ET.XSLT(xslt)
+        newdom = transform(dom)
+    except Exception as e:
+        return '{0} {1}'.format(file, repr(e))
     newfile = file.replace('.dnd4e', '.js')
     with open(newfile, 'w') as outfile:
         outfile.write(str(newdom))
@@ -27,6 +25,8 @@ def getFiles():
                 os.remove(os.path.join(root, file))
     
 if __name__ == '__main__':
-    Parallel(n_jobs=8)(delayed(parseFile)(file) for file in getFiles())
-    #parseFile(files[-2])
-
+    xslt = ET.parse('dnd4eToJSON.xslt')
+    transform = ET.XSLT(xslt)
+    Parallel(n_jobs=7)(delayed(parseFile)(file) for file in getFiles())
+    #os.remove('XF Group\\Charlie Humphreys.js')
+    #parseFile('XF Group\\Charlie Humphreys.dnd4e')
