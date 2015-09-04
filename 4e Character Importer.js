@@ -6,18 +6,19 @@ on("chat:message", function (msg) {
     
     // Get the API Chat Command
     var content = msg.content.replace("(GM) ", ""),
-        command = content.split(" ", 1),
-        args = content.split(" "),
-        selected = _.pluck(msg.selected, '_id');
+        command = content.split(" ", 1);
 
     if (command == "!build-character") {
+        var args = content.split(" ");
         args.shift();
-
-        _.each(_.union(args, selected), function (id) {
-            CharacterImport.Process(getObj("graphic", id));
+        var selected = _.pluck(msg.selected, '_id')
+        
+        _.each(_.union(args,selected), function(id){
+            var Token = getObj("graphic",id);
+            CharacterImport.Process(Token);
         });
     }
-});
+});    
 
 CharacterImport.Process = function (Token) {
     if (Token === undefined || Token.get("subtype") != "token") return;
@@ -38,16 +39,9 @@ CharacterImport.Process = function (Token) {
     });
 
     var Character, charLevel;
-<<<<<<< HEAD
     
     if (CheckSheet.length > 0) {
         sendChat("CharacterImport", "/w GM Updating " + CharacterName)
-=======
-
-    if (CheckSheet.length > 0) {
-        log("Updating " + CharacterName)
-
->>>>>>> origin/master
         // DO NOT CREATE IF SHEET EXISTS
         Character = CheckSheet[0];
     } else {
@@ -62,50 +56,49 @@ CharacterImport.Process = function (Token) {
     }
 
     function AddPCAttributeMax(attr, value) {
-        if (!value) {
+        if (value === undefined || value === null || _.isNaN(value)) {
             return;
         }
-        var currentAttribute = findObjs({
-            _type: "attribute",
-            _characterid: Character.id,
-            name: attr
+        var currentAttribute = findObjs({ 
+          _type: "attribute",
+          _characterid: Character.id,
+          name: attr
         });
         if (currentAttribute[0] && !/^repeating/.test(attr)) {
-            currentAttribute[0].set({ current: value, max: value });
+            currentAttribute[0].set({current: value, max: value});
             return currentAttribute[0];
         } else {
             return createObj("attribute", {
                 name: attr,
-                current: value,
-                max: value,
+                current: String(value),
+                max: String(value),
                 characterid: Character.id
             });
         }
     }
 
     function AddPCAttribute(attr, value) {
-        if (!value) {
+        if (value === undefined || value === null || _.isNaN(value)) {
             return;
         }
-        var currentAttribute = findObjs({
-            _type: "attribute",
-            _characterid: Character.id,
-            name: attr
+        var currentAttribute = findObjs({ 
+          _type: "attribute",
+          _characterid: Character.id,
+          name: attr
         });
         if (currentAttribute[0]) {
-            currentAttribute[0].set({ current: value });
+            currentAttribute[0].set({current: value});
             return currentAttribute[0];
         } else {
             return createObj("attribute", {
                 name: attr,
-                current: value,
+                current: String(value),
                 characterid: Character.id
             });
         }
     }
 
     function AddPCPower(powername, powerstring, tokenaction) {
-<<<<<<< HEAD
         _.map(findObjs({ 
           type: "ability",
           characterid: Character.id,
@@ -119,29 +112,10 @@ CharacterImport.Process = function (Token) {
             istokenaction: tokenaction,
             characterid: Character.id
         });
-=======
-        var currentAbility = findObjs({
-            _type: "ability",
-            _characterid: Character.id,
-            name: powername
-        });
-        if (currentAbility[0]) {
-            currentAbility[0].set({ description: "", action: powerstring, istokenaction: tokenaction });
-            return currentAbility[0];
-        } else {
-            return createObj("ability", {
-                name: powername,
-                description: "",
-                action: powerstring,
-                istokenaction: tokenaction,
-                characterid: Character.id
-            });
-        }
->>>>>>> origin/master
     }
-
+    
     function UsageFormat(Usage) {
-        switch (Usage) {
+        switch(Usage) {
             case "At-Will":
             case "Encounter":
             case "Daily":
@@ -150,35 +124,28 @@ CharacterImport.Process = function (Token) {
                 return "item"
         }
     }
-
+    
     function PowerWeapons(PowerString, Weapons, prefix, Attack, MultiTarget, PowerName) {
-        if (!Weapons) { return PowerString; }
+        if (!Weapons) {return PowerString;}
         var keys = _.keys(Weapons),
             values = _.values(Weapons),
             index = 1,
             res;
 
-        function AddWeaponPower(Weapon, Name) {
+        function AddWeaponPower(Weapon, Name){
             var res2 = PowerString;
-<<<<<<< HEAD
             res2 = res2.replace(/\$Attack/gi, "[[ 1d20 [$Atk] + " + Weapon.AttackBonus + "]]")
                        .replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]");
             res2 += AddTags(Weapon, {Enhancement: Weapon.Enhancement, Damage: Weapon.Damage});
-=======
-            res2 = res2.replace(/\$Attack/gi, "[[1d20 + " + Weapon.AttackBonus + "]]");
-            res2 = res2.replace(/\$Damage/gi, "[[" + Weapon.Damage + "]]")
-            res2 += AddTags(Weapon, { Enhancement: Weapon.Enhancement });
->>>>>>> origin/master
             var attrName = prefix + "weapon-" + index++,
                 attr = AddPCAttribute(attrName, res2);
             return " --" + Name + "|" + attrName;
         }
-
+        
         if (/main weapon and off-hand weapon/.test(Attack)) {
             var Main = keys.shift(),
                 Off = keys.shift(),
                 obj;
-<<<<<<< HEAD
             mAttack = " --Main Attack|[[ 1d20 [$AtkMain] + " + Weapons[Main].AttackBonus + "]] vs. AC";
             mDamage = " --?? $AtkMain.base > 1 AND $AtkMain.base < 20 ?? Main Hit|[[" + Weapons[Main].Damage + "]]";
             oAttack = " --Off Attack|[[ 1d20 [$AtkOff] + " + Weapons[Off].AttackBonus + "]] vs. AC";
@@ -186,14 +153,6 @@ CharacterImport.Process = function (Token) {
                 condition = "";
             Main = mAttack + mDamage + AddTags(Weapons[Main], _.extend({}, Weapons[Main], {Mod: "Main"}));
             Off = oAttack + oDamage + AddTags(Weapons[Off], _.extend({}, Weapons[Off], {Mod: "Off"}));
-=======
-            mAttack = " --Main Attack|[[1d20 + " + Weapons[Main].AttackBonus + "]] vs. AC";
-            mDamage = " --Main Hit|[[" + Weapons[Main].Damage + "]]";
-            oAttack = " --Off Attack|[[1d20 + " + Weapons[Off].AttackBonus + "]] vs. AC";
-            oDamage = " --Off Hit|[[" + Weapons[Off].Damage + "]]";
-            Main = mAttack + mDamage + AddTags(Weapons[Main], { Mod: "Main", Enhancement: Weapons[Main].Enhancement });
-            Off = oAttack + oDamage + AddTags(Weapons[Off], { Mod: "Off", Enhancement: Weapons[Off].Enhancement });
->>>>>>> origin/master
             res = PowerString.replace(/ \-\-Attack(.(?!\-\-(?!Hit)))+/, Main + Off)
             var attrName = prefix + "weapon-" + index++,
                 attr = AddPCAttribute(attrName, res);
@@ -201,19 +160,19 @@ CharacterImport.Process = function (Token) {
             res += _.chain(Weapons)
                     .pick(keys)
                     .map(AddWeaponPower)
-                    .reduce(function (cmd, next) { return cmd += next }, "")
+                    .reduce(function(cmd, next) {return cmd += next}, "")
                     .value()
         } else {
             res = "!buttons " + Character.id + " " + MultiTarget + " " + PowerName;
             res += _.chain(Weapons)
                     .pick(keys)
                     .map(AddWeaponPower)
-                    .reduce(function (cmd, next) { return cmd += next }, "")
+                    .reduce(function(cmd, next) {return cmd += next}, "")
                     .value()
         }
         return res;
     }
-
+    
     function MakeTitleTip(Power) {
         var res = " --title|";
         res += (Power.Display) ? Power.Display : "";
@@ -222,23 +181,14 @@ CharacterImport.Process = function (Token) {
         res += (Power.Requirement) ? "<br/>Requirement: " + Power.Requirement : "";
         return (res !== " --title|") ? res : "";
     }
-
+    
     function MakeTag(content, tag) {
-<<<<<<< HEAD
         var indent, condition;
         if (typeof content === Object) {return "";}
         if (tag.match(/^\s+/)) { 
             indent = "^" + tag.match(/^\s+/).length; 
         } else { 
             indent = "";            
-=======
-        var indent;
-        if (typeof content === Object) { return ""; }
-        if (tag.match(/^\s+/)) {
-            indent = "^" + tag.match(/^\s+/).length;
-        } else {
-            indent = "";
->>>>>>> origin/master
         };
         tag = tag.trim();
         switch (tag) {
@@ -284,13 +234,9 @@ CharacterImport.Process = function (Token) {
                                  .replace(/\dd\d+( \+ [\w]+ modifier)?/gi, "$Damage");
                 break;
             case "Critical":
-<<<<<<< HEAD
                 condition = "?? $Atk" + ((this.Mod) ? this.Mod : "") + ".base == 20 ?? ";
                 if (this.Damage) {content = String(this.Damage).replace("d", "*") + content}
                 if (this.Enhancement) {content = content.replace(/1(d\d damage) per plus/, this.Enhancement.toString() + "$1")}
-=======
-                if (this.Enhancement) { content = content.replace(/1(d\d damage) per plus/, this.Enhancement.toString() + "$1") }
->>>>>>> origin/master
                 break;
         }
         content = content.replace(/\<table\>.*?\<\/table\>/gi, "")
@@ -303,70 +249,77 @@ CharacterImport.Process = function (Token) {
         if (condition) tag = condition + tag
         if (content !== "") return " --" + indent + tag + "|" + content;
     }
-
+    
     function AddTags(Source, context) {
         return _.chain(Source)
         .map(MakeTag, context)
-        .reduce(function (ps, tag) { return ps += tag }, "")
+        .reduce(function (ps, tag) {return ps += tag}, "")
         .value();
+    }
+    
+    function SimpleTagify(val, tag) { 
+        return (_.isObject(val)) ? tag + ": " + _.keys(val).join("\n\t") : tag + ": " + val
+    }
+    
+    function romanize(num) {
+        var lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1},
+            roman = '',
+            i;
+        for ( i in lookup ) {
+            while ( num >= lookup[i] ) {
+                roman += i;
+                num -= lookup[i];
+                }
+            }
+        return roman;
     }
 
     function MakePower(Power, idx, Name) {
         // BUILD POWERSTRING
         var PowerString = "!power --format|" + UsageFormat(Power["Power Usage"]) + " --name|" + Power.Name + " --charid|" + Character.id,
+            prefix = "repeating_powers_" + idx + "_", 
+            augment = Power.Name.match(/Augment (\d+)/),
+            name;
+
+        Power.Name = Power.Name.replace(/([\+\-]?)(\d+)/g, function(match, sign, num){ return sign + romanize(Number(num)) })
+                               .replace("(Augment )", "(Unaugmented)");
+
+        var ability = AddPCPower(Power.Name, "@{" + Name + "|" + prefix + "macro}", true),
             // CHECK FOR MULTIPLE ATTACK POWERS
-            prefix = "repeating_powers_" + idx + "_",
-            Target = (Power.Target) ? Power.Target : (Power.Targets) ? Power.Targets : (Power[" Target"]) ? Power[" Target"] : (Power[" Targets"]) ? Power[" Targets"] : undefined,
-            Attack = (Power.Attack) ? Power.Attack : (Power[" Attack"]) ? Power[" Attack"] : undefined,
+            Target = _.find([Power.Target, Power.Targets, Power[" Target"], Power[" Targets"]], _.identity),
+            Attack = _.find([Power.Attack, Power[" Attack"]], _.identity),
             MultiTarget = (Target) ? isMultiTarget(Target) : "",
             MultiAttack = (Attack) ? isMultiAttack(Attack, MultiTarget) : "",
-            MultiDamage = (Power["Attack Type"] && (/Melee/.test(Power["Attack Type"]) || /Ranged/.test(Power["Attack Type"]))) ? MultiAttack : "";
+            MultiDamage = (Power["Attack Type"] && (/Melee/.test(Power["Attack Type"]) || /Ranged/.test(Power["Attack Type"]))) ? MultiAttack : "",
+            // CALL USEAMMOPOWER
+            Useage = (augment && _.isFinite(augment[1])) ?
+                "!use-ammo " + Character.id + " power-points " + augment[1] + "\n" : 
+            (/Encounter \(Special\)/.test(Power["Power Usage"])) ? 
+                (name = Power.Name.toLowerCase().replace(/ /g, "-"), AddPCAttributeMax(name, 2), "!use-ammo " + Character.id + " " + name + " 1\n") :
+            (/Daily/.test(Power["Power Usage"]) || /Consumable/.test(Power["Power Usage"])) ?
+                "!use-power daily " + ability.id + "\n" :
+            (/Encounter/.test(Power["Power Usage"])) ?
+                "!use-power encounter " + ability.id + "\n" : "";
 
+        PowerString = Useage + PowerString;
         // TITLE & SUBTITLES
         PowerString += MakeTitleTip(Power);
         PowerString += (Power["Power Usage"]) ? " --leftsub|" + Power["Power Usage"] : "";
         PowerString += (Power["Action Type"]) ? " --rightsub|" + Power["Action Type"] : "";
         PowerString += (Power.Flavor) ? " --emote|" + Power.Flavor : "";
 
-        PowerString += AddTags(Power, { MultiAttack: MultiAttack, MultiDamage: MultiDamage });
+        PowerString += AddTags(Power, {MultiAttack: MultiAttack, MultiDamage: MultiDamage});
         PowerString = PowerWeapons(PowerString, Power.Weapons, prefix, Attack, String(MultiTarget), Power.Name);
-
-<<<<<<< HEAD
-        var Usage = "", 
-            ability = AddPCPower(Power.Name, "@{" + Name + "|" + prefix + "macro}", true), 
-=======
-        var Usage = "",
-            ability = AddPCPower(Power.Name, "%{" + Name + "|-" + prefix + "}", true),
->>>>>>> origin/master
-            augment = Power.Name.match(/Augment (\d+)/);
-
-        if (augment && parseInt(augment[1])) {
-            Usage = "!use-ammo " + Character.id + " power-points " + parseInt(augment[1]) + "\n"
-        } else if (/Daily/.test(Power["Power Usage"]) || /Consumable/.test(Power["Power Usage"])) {
-            Usage = "!use-power daily " + ability.id + "\n";
-        } else if (/Encounter \(Special\)/.test(Power["Power Usage"])) {
-            Usage = "!use-ammo " + Character.id + " placeholder 1\n"
-        } else if (/Encounter/.test(Power["Power Usage"])) {
-            Usage = "!use-power encounter " + ability.id + "\n";
-        }
 
         // FILL IN power_idx_ ATTRIBUTES
         AddPCAttribute(prefix + "name", Power.Name);
+        AddPCAttribute(prefix + "useage", (Power["Power Usage"]) ? Power["Power Usage"].split(" ")[0] : "");
         AddPCAttribute(prefix + "action", (Power["Action Type"]) ? Power["Action Type"] : "");
         AddPCAttribute(prefix + "range", (Power["Attack Type"]) ? Power["Attack Type"] : "");
         AddPCAttribute(prefix + "level", (Power.Level) ? Power.Level : "");
-        AddPCAttribute(prefix + "useage", (Power["Power Usage"]) ? Power["Power Usage"] : "");
+        AddPCAttribute(prefix + "tags", _.map(Power, SimpleTagify).join("\n"));
         var macro = AddPCAttribute(prefix + "macro", PowerString);
         AddPCAttribute(prefix + "toggle", "on");
-<<<<<<< HEAD
-=======
-
-        if (Power.Weapons && _.keys(Power.Weapons).length > 1) {
-            ability.set("action", Usage + "!buttons " + macro.id);
-        } else {
-            ability.set("action", Usage + "%{" + Name + "|-" + prefix + "}");
-        }
->>>>>>> origin/master
     }
 
     function StatTotal(stat) {
@@ -412,45 +365,25 @@ CharacterImport.Process = function (Token) {
         }
     }
 
-    function AddPCAttributeBreakdown(name, attr) {
-        if (typeof (attr) === 'object') {
-            var armor = 0,
-                clas = 0,
-                feat = 0,
-                enh = 0,
-                item = 0,
-                misc = 0;
-            for (bonus in attr) {
-                if (bonus === undefined) continue;
-                switch (bonus) {
-                    case "Total":
-                        break;
-                    case "Armor":
-                        armor = attr[bonus];
-                        break;
-                    case "Class":
-                        clas = attr[bonus];
-                        break;
-                    case "Feat":
-                        feat = attr[bonus];
-                        break;
-                    case "Enhancement":
-                        enh = attr[bonus];
-                        break;
-                    case "item":
-                        item = attr[bonus];
-                        break;
-                    default:
-                        misc += attr[bonus];
-                }
-                AddPCAttribute(name + "-armor", armor);
-                AddPCAttribute(name + "-class", clas);
-                AddPCAttribute(name + "-feat", feat);
-                AddPCAttribute(name + "-enh", enh);
-                AddPCAttribute(name + "-item", item);
-                AddPCAttribute(name + "-misc", misc);
-            }
+    function AddPCAttributeBreakdown(name, attr, long) {
+        if (typeof (attr) !== 'object') { return } 
+        long = (long) ? long : name;
+        
+        AddPCAttribute(name + "-armor", attr["Armor"]);
+        AddPCAttribute(name + "-class", attr["Class"]);
+        AddPCAttribute(name + "-feat", attr["Feat"]);
+        AddPCAttribute(name + "-enh", attr["Enhancement"]);
+        AddPCAttribute(name + "-item", attr["Item"]);
+
+        var stat = getAttrByName(Character.id, long).replace("+@{" + name + "-misc}", "");
+        while (stat && stat.match(/@\{([^\|]*?)(\|max|\|current)?\}/g)) {
+            stat = stat.replace(/@\{([^\|]*?)(\|max|\|current)?\}/g, function(match, g1, g2){ return getAttrByName(Character.id,g1,g2||'current') || 0 });
         }
+
+        sendChat("Character Import", "[[1d0 + " + attr["Total"] + " - [[1d0 + " + stat + "]]]]", function(inner) {
+            AddPCAttribute(name + "-misc", inner[0].inlinerolls[1].results.total);    
+        });
+        
     }
 
     // ADD ATTRIBUTES TO SHEET (character sheet version)
@@ -459,7 +392,7 @@ CharacterImport.Process = function (Token) {
     var HP = AddPCAttributeMax("hp", StatTotal(stats["Hit Points"]));
     var Surges = AddPCAttributeMax("surges", StatTotal(stats["Healing Surges"]));
     AddPCAttribute("surge-value-bonus", StatTotal(stats["Healing Surge Value"]));
-
+    
     var str = StatTotal(stats.Strength);
     var con = StatTotal(stats.Constitution);
     var dex = StatTotal(stats.Dexterity);
@@ -475,31 +408,19 @@ CharacterImport.Process = function (Token) {
     AddPCAttribute("saving-throw-mods", StatTotal(stats["Saving Throws"]));
 
     AddPCAttributeBreakdown("ac", stats.AC);
-    if (dex > int) {
-        AddPCAttribute("ac-highest", "@{dexterity-mod}");
-    } else {
-        AddPCAttribute("ac-highest", "@{intelligence-mod}");
-    }
+    AddPCAttribute("ac-highest", (dex > int) ? "@{dexterity-mod}" : "@{intelligence-mod}");
+    
     AddPCAttributeBreakdown("fort", stats["Fortitude Defense"]);
-    if (str > con) {
-        AddPCAttribute("fort-highest", "@{strength-mod}");
-    } else {
-        AddPCAttribute("fort-highest", "@{constitution-mod}");
-    }
+    AddPCAttribute("fort-highest", (str > con) ? "@{strength-mod}" : "@{constitution-mod}");
+    
     AddPCAttributeBreakdown("ref", stats["Reflex Defense"]);
-    if (dex > int) {
-        AddPCAttribute("ref-highest", "@{dexterity-mod}");
-    } else {
-        AddPCAttribute("ref-highest", "@{intelligence-mod}");
-    }
+    AddPCAttribute("ref-highest", (dex > int) ? "@{dexterity-mod}" : "@{intelligence-mod}");
+    
     AddPCAttributeBreakdown("will", stats["Will Defense"]);
-    if (wis > cha) {
-        AddPCAttribute("fort-highest", "@{wisdom-mod}");
-    } else {
-        AddPCAttribute("fort-highest", "@{charisma-mod}");
-    }
+    AddPCAttribute("fort-highest", (wis > cha) ? "@{wisdom-mod}" : "@{charisma-mod}");
+    
+    AddPCAttributeBreakdown("init", stats["Initiative"], "initiative");
     AddPCAttribute("init-highest", "@{dexterity-mod}")
-    AddPCAttributeBreakdown("init", stats["Initiative Misc"]);
 
     AddPCSpeed(stats.Speed);
 
@@ -514,37 +435,32 @@ CharacterImport.Process = function (Token) {
 
     var NamedElements = {
         "Class": "class",
-        "Paragon Path": "paragon",
-        "Epic Destiny": "epic",
-        "Race": "race",
-        "Deity": "deity",
-        "Size": "size",
-        "Vision": "init-special-senses"
+            "Paragon Path": "paragon",
+            "Epic Destiny": "epic",
+            "Race": "race",
+            "Deity": "deity",
+            "Size": "size",
+            "Vision": "init-special-senses"
     };
     var RepeatElements = {
         "Feat": {
             "repeat": "repeating_feats_",
-            "name": "_feat",
-            "count": 0
+                "name": "_feat",
+                "count": 0
         },
-        "Class Feature": {
+            "Class Feature": {
             "repeat": "repeating_class-feats_",
-            "name": "_class-feat",
-            "count": 0
+                "name": "_class-feat",
+                "count": 0
         },
-        "Racial Trait": {
+            "Racial Trait": {
             "repeat": "repeating_race-feats_",
-            "name": "_race-feat",
-            "count": 0
+                "name": "_race-feat",
+                "count": 0
         }
     };
     var languages = [];
-<<<<<<< HEAD
     _.each(parsed.RulesElements, function(elem) {
-=======
-    _.each(parsed.RulesElements, function (elem) {
-        var repeat;
->>>>>>> origin/master
         if (NamedElements[elem.type] !== undefined) {
             AddPCAttribute(NamedElements[elem.type], elem.name);
         } else if (RepeatElements[elem.type] !== undefined) {
@@ -565,13 +481,13 @@ CharacterImport.Process = function (Token) {
     var MiscMod = 0;
     var Trained = 0;
     var ShowTrained = "";
-    _.each(SkillList, function (skill) {
+    _.each(SkillList, function(skill) {
         Trained = stats[skill + " Trained"] / 5;
         MiscMod = StatTotal(stats[skill + " Misc"]);
         AddPCAttribute(skill.toLowerCase() + "-trained", Trained);
         AddPCAttribute(skill.toLowerCase() + "-misc", MiscMod);
     });
-    _.each(ArmourPenSkills, function (skill) {
+    _.each(ArmourPenSkills, function(skill) {
         AddPCAttribute(skill.toLowerCase() + "-pen", StatTotal(stats["Armor Penalty"]));
     });
 
@@ -579,15 +495,15 @@ CharacterImport.Process = function (Token) {
 
     // ADD POWERS
     var power_count = 0;
-    _.each(parsed.Powers, function (power, name) {
+    _.each(parsed.Powers, function(power, name) {
         power.Name = name;
         MakePower(power, power_count++, CharacterName);
     });
-    _.each(parsed["Item Powers"], function (value, name) {
+    _.each(parsed["Item Powers"], function(value, name) {
         var Powers = value.split("Power");
         Powers.shift();
-        _.each(Powers, function (text, index) {
-            var ItemPower = { Name: (Powers.length > 1) ? name + " " + ++index : name }
+        _.each(Powers, function(text, index) {
+            var ItemPower = {Name: (Powers.length > 1) ? name + " " + ++index : name}
             var UseKeys = text.match(/\(([^\)]+)\)/);
             UseKeys = (UseKeys) ? UseKeys[1].split(/[\*\u2022]/) : [];
             if (UseKeys.length > 0) {
@@ -603,14 +519,14 @@ CharacterImport.Process = function (Token) {
             if (!/:/.test(text)) {
                 ItemPower.Text = text;
             } else {
-                text = text.replace(/((?:Augment \d+)|(?:\w+)):([^\.]+\.)/gi, function (match, key, value) {
+                text = text.replace(/((?:Augment \d+)|(?:\w+)):([^\.]+\.)/gi, function(match, key, value) {
                     ItemPower[key] = value.trim();
                 });
             }
             MakePower(ItemPower, power_count++, CharacterName);
         });
     });
-
+    
     log("powers succeded");
 
     var Slots = {
@@ -633,23 +549,15 @@ CharacterImport.Process = function (Token) {
 
     // ADD LOOT
     var loot_count = 0;
-<<<<<<< HEAD
     _.each(parsed.Loot, function(item, name) {
         var value, weight, quantity, disc, slot;
         if (_.has(item,"type")) {
-=======
-    _.each(stats.Loot, function (item) {
-        var name, value, weight, quantity, disc;
-        name = item.name;
-        quantity = (item.count) ? item.count : 0;
-        if (item.elements === undefined) {
->>>>>>> origin/master
             value = (item.Gold) ? item.Gold : 0;
             weight = (item.Weight) ? item.Weight : 0;
             quantity = (item.count) ? item.count : 1;
             disc = (item["Full Text"]) ? item["Full Text"] + "\n" : "";
             disc += (item.Power) ? item.Power + "\n" : "";
-            slot = (item["Item Slot"] && item.equip) ? Slots[item["Item Slot"]] : "None"
+            slot = (item["Item Slot"] && item.equip > 0) ? Slots[item["Item Slot"]] : "None"
         } else {
             var Base = _.find(_.values(item), function (e){ return e.type !== "Magic Item" }),
                 Magic = _.find(_.values(item), function (e){ return e.type === "Magic Item" });
@@ -660,9 +568,8 @@ CharacterImport.Process = function (Token) {
             disc += (Magic.Property) ? Magic.Property + "\n" : ""
             disc += (Magic.Special) ? Magic.Special + "\n" : "";
             disc += (Magic.Power) ? Magic.Power + "\n" : "";
-            slot = (Base["Item Slot"] && Base.equip) ? Slots[Base["Item Slot"]] : "None"
+            slot = (Base["Item Slot"] && Base.equip > 0) ? Slots[Base["Item Slot"]] : "None"
         }
-<<<<<<< HEAD
         
         AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-name", name);
         AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-value", value);
@@ -671,17 +578,6 @@ CharacterImport.Process = function (Token) {
         AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-disc", disc);
         AddPCAttribute("repeating_inventory_" + loot_count + "_mba-mod", slot);
         loot_count++;
-=======
-
-        if (quantity > 0) {
-            AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-name", name);
-            AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-value", value);
-            AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-weight", weight);
-            AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-quantity", quantity);
-            AddPCAttribute("repeating_inventory_" + loot_count + "_inventory-disc", disc);
-            loot_count++;
-        }
->>>>>>> origin/master
     });
 
     log("loot succeded");
